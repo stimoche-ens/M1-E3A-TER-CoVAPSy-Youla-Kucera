@@ -1,0 +1,5 @@
+data format :
+filename="data_"+f'{vitesse_m_s:06.2f}'+"_"+f'{angle_degre:06.2f}'+".csv"
+filename="data_"+f'{vitesse_m_s:06.2f}'+"_"+f'{angle_degre:06.2f}'+"_"+f'{angle_period:06.2f}'+".csv"
+filename="pert_"+f'{vitesse_m_s:06.2f}'+"_"+f'{PERT_ANG_MAX:06.2f}'+"_"+f'{PERT_ANG_PERIOD:06.2f}'+".csv"
+filename="pert2_"+f'{vitesse_m_s:06.2f}'+"_"+f'{PERT_VIT_MAX:06.2f}'+"_"+f'{PERT_VIT_PERIOD:06.2f}'+"_"+f'{PERT_ANG_MAX:06.2f}'+"_"+f'{PERT_ANG_PERIOD:06.2f}'+".csv"
