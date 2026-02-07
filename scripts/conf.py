@@ -7,3 +7,8 @@ MAX_ANGLE = 16    # Replace with max steering angle
 POOL = "./pool"
 OUTPUT_DIR = "./out"
 TESTS_DIR = "./tests"
+
+PAST_WINDOW = 50
+FUTURE_WINDOW = 50
+CMD_DIM = 2
+LIDAR_DIM = 360

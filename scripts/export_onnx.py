@@ -103,8 +103,9 @@ def main():
         sys.exit(1)
     file_pool = mylib.get_file_pool(args.files, verbose=args.verbose)
     if args.verbose:
-        print(f"Dataset class:    {args.dataset}")
+        print(f"Pth file:    {args.pthfile}")
         print(f"Model class:    {args.model}")
+        print(f"Target device:    {args.device}")
         print(f"File Pool: {file_pool}")
     
     try:

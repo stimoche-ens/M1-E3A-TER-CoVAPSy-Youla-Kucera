@@ -24,11 +24,20 @@ def my_train(dataset, ModelClass, verbose=False):
     if verbose:
         print("model name:", str(ModelClass.__name__))
         print("output full name:", str(output_fullname))
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer,
+        mode='min',
+        factor=0.1,
+        patience=2,
+        threshold=0.005,       # <--- THE MAGIC NUMBER
+        threshold_mode='rel'   # Relative improvement
+    )
     criterion = nn.MSELoss() # Standard loss for regression (measurements)
     model.train()
-    for epoch in range(10):
-        loop = tqdm(loader, desc=f"Epoch {epoch+1}/10")
+    prev_loss = 1
+    for epoch in range(50):
+        loop = tqdm(loader, desc=f"Epoch {epoch+1}/50")
         total_loss = 0
         for past, fut_cmd, target in loop:
             optimizer.zero_grad(set_to_none=True) 
@@ -49,7 +58,13 @@ def my_train(dataset, ModelClass, verbose=False):
             optimizer.step()
             total_loss += loss.item()
             loop.set_postfix(loss=loss.item())
-        print(f"Epoch {epoch+1} Average Loss: {total_loss / len(loader)}")
+        current_lr = optimizer.param_groups[0]['lr']
+        avg_loss = total_loss / len(loader)
+        print(f"Epoch {epoch+1} Average Loss: {avg_loss:.6f} | Loss improvement: {(prev_loss-avg_loss)/prev_loss*100:.4f}% | Current LR: {current_lr:.2e}")
+        scheduler.step(avg_loss)
+        print(f"New LR: {optimizer.param_groups[0]['lr']:.2e}")
+        prev_loss = avg_loss
+    mylib.make_model_raw_ready(dataset, model)
     torch.save(model.state_dict(), output_fullname)
 
 
