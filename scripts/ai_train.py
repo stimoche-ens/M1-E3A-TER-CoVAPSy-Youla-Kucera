@@ -15,6 +15,7 @@ import mylib
 
 
 
+
 # --- TRAINING ---
 def my_train(dataset, ModelClass, verbose=False):
     loader = DataLoader(dataset, batch_size=256, shuffle=True, num_workers=0, pin_memory=False)
@@ -24,46 +25,42 @@ def my_train(dataset, ModelClass, verbose=False):
     if verbose:
         print("model name:", str(ModelClass.__name__))
         print("output full name:", str(output_fullname))
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer,
-        mode='min',
-        factor=0.1,
-        patience=2,
-        threshold=0.005,       # <--- THE MAGIC NUMBER
-        threshold_mode='rel'   # Relative improvement
+    optimizer = torch.optim.LBFGS(
+        model.parameters(), 
+        lr=1, 
+        max_iter=20, 
+        history_size=100, 
+        line_search_fn='strong_wolfe'
     )
+
     criterion = nn.MSELoss() # Standard loss for regression (measurements)
     model.train()
-    prev_loss = 1
+
+
+    past = None
+    fut_cmd = None
+    target = None
+
+    def closure():
+        optimizer.zero_grad()
+        # This works because 'past', 'fut_cmd', 'target' are looked up 
+        # in the parent scope at runtime (Late Binding)
+        prediction = model(past, fut_cmd, target)
+        loss = criterion(prediction, target)
+        loss.backward()
+        return loss
+
     for epoch in range(50):
         loop = tqdm(loader, desc=f"Epoch {epoch+1}/50")
-        total_loss = 0
         for past, fut_cmd, target in loop:
-            optimizer.zero_grad(set_to_none=True) 
-            prediction = model(past, fut_cmd, target)
-            loss = criterion(prediction, target)
-            loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-            """
-            # Measure the health of the gradients
-            total_norm = 0.0
-            for p in model.parameters():
-                if p.grad is not None:
-                    param_norm = p.grad.data.norm(2)
-                    total_norm += param_norm.item() ** 2
-            total_norm = total_norm ** 0.5
-            print(f"Gradient Flow: {total_norm:.6f}") # Should be between 0.1 and 5.0
-            """
-            optimizer.step()
-            total_loss += loss.item()
+            loss = optimizer.step(closure)
             loop.set_postfix(loss=loss.item())
-        current_lr = optimizer.param_groups[0]['lr']
-        avg_loss = total_loss / len(loader)
-        print(f"Epoch {epoch+1} Average Loss: {avg_loss:.6f} | Loss improvement: {(prev_loss-avg_loss)/prev_loss*100:.4f}% | Current LR: {current_lr:.2e}")
-        scheduler.step(avg_loss)
-        print(f"New LR: {optimizer.param_groups[0]['lr']:.2e}")
-        prev_loss = avg_loss
+        #current_lr = optimizer.param_groups[0]['lr']
+        #avg_loss = total_loss / len(loader)
+        #print(f"Epoch {epoch+1} Average Loss: {avg_loss:.6f} | Loss improvement: {(prev_loss-avg_loss)/prev_loss*100:.4f}% | Current LR: {current_lr:.2e}")
+        #scheduler.step(avg_loss)
+        #print(f"New LR: {optimizer.param_groups[0]['lr']:.2e}")
+        #prev_loss = avg_loss
     mylib.make_model_raw_ready(dataset, model)
     torch.save(model.state_dict(), output_fullname)
 
