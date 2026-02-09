@@ -60,28 +60,3 @@ def load_class_from_pool(class_name, file_pool, verbose=False):
             pass
     raise ValueError(f"Could not find class '{class_name}' in any of the provided files.")
 
-
-def make_model_raw_ready(dataset, model):
-    """
-    Modifies the trained model weights in-place.
-    It divides input weights by the dataset's scaling factors,
-    so the model accepts RAW world units (12000, 28) at runtime.
-    """
-    print("🔧 Patching weights to accept Raw World Units...")
-    with torch.no_grad():
-        # 1. Patch ENCODER
-        # Move scale vector to the same device as the weights
-        enc_scale = dataset.enc_scale.to(model.encoder.weight_ih_l0.device)
-        # Broadcasting division: weights /= scale
-        model.encoder.weight_ih_l0 /= enc_scale
-
-        if hasattr(model, 'decoder'):
-            dec_scale = dataset.dec_scale.to(model.decoder.weight_ih_l0.device)
-            model.decoder.weight_ih_l0 /= dec_scale
-
-        # 3. Patch OUTPUT LAYER
-        # Output weights are multiplied because y_raw = y_norm * scale
-        out_scale = dataset.out_scale.to(model.output_layer.weight.device)
-        model.output_layer.weight *= out_scale
-        model.output_layer.bias   *= out_scale
-    print("✅ Weights patched successfully.")

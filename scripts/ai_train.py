@@ -16,10 +16,10 @@ import mylib
 
 
 # --- TRAINING ---
-def my_train(dataset, ModelClass, verbose=False):
-    loader = DataLoader(dataset, batch_size=256, shuffle=True, num_workers=0, pin_memory=False)
-    model = ModelClass()
+def my_train(datadict, ModelClass, verbose=False):
+    model = ModelClass(datadict=datadict)
     model = torch.compile(model)
+    loader = DataLoader(model.dataset, batch_size=256, shuffle=True, num_workers=0, pin_memory=False)
     output_fullname = str(conf.OUTPUT_DIR)+str(ModelClass.__name__)+"_weights.pth"
     if verbose:
         print("model name:", str(ModelClass.__name__))
@@ -39,10 +39,10 @@ def my_train(dataset, ModelClass, verbose=False):
     for epoch in range(50):
         loop = tqdm(loader, desc=f"Epoch {epoch+1}/50")
         total_loss = 0
-        for past, fut_cmd, target in loop:
+        for traj_tuple in loop:
             optimizer.zero_grad(set_to_none=True) 
-            prediction = model(past, fut_cmd, target)
-            loss = criterion(prediction, target)
+            prediction = model(*traj_tuple["inputs"],*traj_tuple["outputs"])
+            loss = criterion(prediction, *traj_tuple["outputs"])
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
             """
@@ -64,7 +64,7 @@ def my_train(dataset, ModelClass, verbose=False):
         scheduler.step(avg_loss)
         print(f"New LR: {optimizer.param_groups[0]['lr']:.2e}")
         prev_loss = avg_loss
-    mylib.make_model_raw_ready(dataset, model)
+    model.denormalise_weights()
     torch.save(model.state_dict(), output_fullname)
 
 
@@ -121,7 +121,7 @@ def main():
     print(f"Instantiating Dataset: {DatasetClass.__name__}")
     dataset = DatasetClass()
     print(f"Starting training with model: {ModelClass.__name__}")
-    my_train(dataset, ModelClass, verbose=args.verbose)
+    my_train(dataset.datadict, ModelClass, verbose=args.verbose)
 
 if __name__ == '__main__':
     main()
