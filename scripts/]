@@ -52,55 +52,17 @@ def get_object_type(obj: Any) -> str:
         case _:
             return "unknown_type"
 
-def get_normcoeffs(key,model):
-    match
-
-def normcoeffs_from_IO(IOarr, arrtype, model)
-
-def get_datalen(key, dataset):
-    match get_object_type(key):
-        case "string":
-            return dataset.lengths[key]
-        case _:
-            return key
-
-def size_from_IO(IOarr, dataset):
-    match get_object_type(IOarr):
+def size_from_IO(IOarr):
+    IOarr_type get_object_type(IOarr)
+    match IOarr_type:
         case "array":
-            return (sum([get_datalen(key, dataset) for key in dimension]) if get_object_type(dimension) == "array" else int(dimension) for dimension in IOarr)
+            return (for dimension in IOarr)
+
+        sum([get_datalen(key) for key in IOarr])
         case "scalar":
             return 0
         case _:
             return 0
-
-
-
-def denormalize_weights(model):
-    """
-    Modifies the trained model weights in-place.
-    It divides input weights by the dataset's scaling factors,
-    so the model accepts RAW world units (12000, 28) at runtime.
-    """
-    print("🔧 Patching weights to accept Raw World Units...")
-    device = model.output_layer.weight.device
-
-    with torch.no_grad():
-        for key in model.IO.keys():
-            if (model.IO[key]["weight"]["type"] == "input"):
-                to_attribute(model.IO[key]["weight"]["name"], model) *= normcoeffs_from_IO(model.IO[key]["weight"]["composition"], "weight", model)
-                to_attribute(model.IO[key]["bias"]["name"],   model) -= normcoeffs_from_IO(model.IO[key]["bias"]["composition"],   "bias",   model)
-            else:
-                to_attribute(model.IO[key]["weight"]["name"], model) /= normcoeffs_from_IO(model.IO[key]["weight"]["composition"], "weight", model)
-                to_attribute(model.IO[key]["bias"]["name"],   model) += normcoeffs_from_IO(model.IO[key]["bias"]["composition"],   "bias",   model)
-        #model.encoder.weight_ih_l0 *= model.dataset.enc_in_scale[0,0,:].to(device) / global_std
-        #model.encoder.bias_ih_l0   -= torch.matmul(model.encoder.weight_ih_l0, global_mean)
-        #model.decoder.weight_ih_l0 *= model.dataset.dec_in_scale[0,0,:].to(device)
-        #model.output_layer.weight  *= std.view(-1, 1)/ model.dataset.out_scale[0,0,:].unsqueeze(1).to(device)
-        #model.output_layer.bias    *= std.view(-1)   / model.dataset.out_scale[0,0,:].to(device)
-        #model.output_layer.bias    += lmean
-    print("✅ Weights patched successfully.")
-
-
 
 class MyLSTM(nn.Module):
     @staticmethod
@@ -117,21 +79,27 @@ class MyLSTM(nn.Module):
                 "encoder": {
                     "input":  [[key for key in IDX]],
                     "hidden":  self.hidden_dim,
-                    "weight": {"name": "weight_ih_l0", "composition": ["input"], "type": "input"}
-                    "bias":   {"name": "bias_ih_l0",   "composition": ["input"], "type": "input"}
+                    "weight": {"name": "weight_ih_l0", "composition": ["input"]}
+                    "bias":   {"name": "bias_ih_l0",   "composition": ["input"]}
                 },
                 "decoder": {
                     "input":  [[key for key in self.IDX_cmd]],
                     "hidden":  self.hidden_dim,
-                    "weight": {"name": "weight_ih_l0", "composition": ["input"], "type": "input"}
-                    "bias":   {"name": "bias_ih_l0",   "composition": ["input"], "type": "input"}
+                    "weight": {"name": "weight_ih_l0", "composition": ["input"]}
+                    "bias":   {"name": "bias_ih_l0",   "composition": ["input"]}
                 },
                 "output_layer": {
                     "input":   self.hidden_dim,
                     "output": [[conf.DATADICT_MES_LIDAR]],
-                    "weight": {"name": "weight", "composition": ["output", 1], "type": "output"}
-                    "bias":   {"name": "bias",   "composition": ["output"],    "type": "output"}
+                    "weight": {"name": "weight", "composition": ["output", 1]}
+                    "bias":   {"name": "bias",   "composition": ["output"]}
                 },
+                {"encoder.weight_ih_l0": [[key for key in IDX]]},
+                {"encoder.bias_ih_l0":   [[key for key in IDX]]},
+                {"decoder.weight_ih_l0": [[key for key in IDX]]},
+                {"decoder.bias_ih_l0":   [[key for key in IDX]]},
+                {"output_layer.weight":  [[key for key in IDX], []]},
+                {"output_layer.bias":    [[key for key in IDX], []]},
             },
         }
 
@@ -140,16 +108,43 @@ class MyLSTM(nn.Module):
  
         self.dataset = self._Dataset(self, datadict)
 
-        self.cmd_dim    = 2
-        self.lidar_dim  = self.dataset.lidar_len
+        self.cmd_dim   = 2
+        self.lidar_dim = self.dataset.lidar_len
         self.hidden_dim = hidden_dim
 
-        self.encoder = nn.LSTM(input_size=size_from_IO(self.IO["encoder"]["input"]),              hidden_size=size_from_IO(self.IO["encoder"]["hidden"]), batch_first=True)
-        self.decoder = nn.LSTM(input_size=size_from_IO(self.IO["decoder"]["input"]),              hidden_size=size_from_IO(self.IO["decoder"]["hidden"]), batch_first=True)
-        self.output_layer = nn.Linear(in_features=size_from_IO(self.IO["output_layer"]["input"]), out_features=size_from_IO(self.IO["output_layer"]["output"]))
+        self.encoder = nn.LSTM(input_size=self.cmd_dim + self.lidar_dim, hidden_size=hidden_dim, batch_first=True)
+        self.decoder = nn.LSTM(input_size=self.cmd_dim,                  hidden_size=hidden_dim, batch_first=True)
+        self.output_layer = nn.Linear(in_features=hidden_dim, out_features=self.lidar_dim)
+        #print("self.output_layer.weight.size()", self.output_layer.weight.size())
+        #print("self.dataset.out_scale[0,0,:].unsqueeze(1).size()", self.dataset.out_scale[0,0,:].unsqueeze(1).size())
 
         self.IDX_cmd = IDX.pop(self.LIDAR_IDX)
 
+    def denormalise_weights(self):
+        """
+        Modifies the trained model weights in-place.
+        It divides input weights by the dataset's scaling factors,
+        so the model accepts RAW world units (12000, 28) at runtime.
+        """
+        print("🔧 Patching weights to accept Raw World Units...")
+        device = self.output_layer.weight.device
+        lmean = self.dataset.lidar_mean.view(-1).to(device)
+        std  = self.dataset.lidar_std.view(-1).to(device)
+
+        input_dim = self.encoder.input_size
+        global_mean = torch.zeros(input_dim, device=device)
+        global_mean[self.dataset.LIDAR_IDX:self.dataset.LIDAR_IDX+self.dataset.lidar_len] = lmean
+        global_std  = torch.ones(input_dim, device=device)
+        global_std[self.dataset.LIDAR_IDX:self.dataset.LIDAR_IDX+self.dataset.lidar_len] = std
+
+        with torch.no_grad():
+            self.encoder.weight_ih_l0 *= self.dataset.enc_in_scale[0,0,:].to(device) / global_std
+            self.encoder.bias_ih_l0   -= torch.matmul(self.encoder.weight_ih_l0, global_mean)
+            self.decoder.weight_ih_l0 *= self.dataset.dec_in_scale[0,0,:].to(device)
+            self.output_layer.weight  *= std.view(-1, 1)/ self.dataset.out_scale[0,0,:].unsqueeze(1).to(device)
+            self.output_layer.bias    *= std.view(-1)   / self.dataset.out_scale[0,0,:].to(device)
+            self.output_layer.bias    += lmean
+        print("✅ Weights patched successfully.")
 
     def forward(self, past_data, future_cmds, target_lidar=None):
         """
@@ -168,11 +163,6 @@ class MyLSTM(nn.Module):
             self.num_trajs = datadict[conf.DATADICT_MES_LIDAR].size(0)
             self.traj_len  = datadict[conf.DATADICT_MES_LIDAR].size(1)
             self.lidar_len = datadict[conf.DATADICT_MES_LIDAR].size(2)
-            self.lengths = {
-                conf.DATADICT_CMD_SPEED: datadict[conf.DATADICT_CMD_SPEED].size(2)
-                conf.DATADICT_CMD_ANGLE: datadict[conf.DATADICT_CMD_ANGLE].size(2)
-                conf.DATADICT_MES_LIDAR: self.lidar_len
-            }
             self.SPEED_IDX = IDX.index(conf.DATADICT_CMD_SPEED) if IDX.index(conf.DATADICT_CMD_SPEED) > IDX.index(conf.DATADICT_MES_LIDAR) else IDX.index(conf.DATADICT_CMD_SPEED) + self.lidar_len - 1
             self.ANGLE_IDX = IDX.index(conf.DATADICT_CMD_ANGLE) if IDX.index(conf.DATADICT_CMD_ANGLE) > IDX.index(conf.DATADICT_MES_LIDAR) else IDX.index(conf.DATADICT_CMD_ANGLE) + self.lidar_len - 1
             self.LIDAR_IDX = IDX.index(conf.DATADICT_MES_LIDAR)
