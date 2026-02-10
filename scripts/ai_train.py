@@ -3,23 +3,18 @@
 import os
 import argparse
 import sys
-import glob
-import importlib.util
-import inspect
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 import conf
 from tqdm import tqdm
-import mylib
+from libmy import libpool, libdata
 
-
-
-# --- TRAINING ---
-def my_train(datadict, ModelClass, verbose=False):
-    model = ModelClass(datadict=datadict)
+def my_train(dataset, ModelClass, verbose=False):
+    libdata.norm_data_mean_stddev_len(dataset)
+    model = ModelClass(dataset_stats=dataset.stats)
     model = torch.compile(model)
-    loader = DataLoader(model.dataset, batch_size=256, shuffle=True, num_workers=0, pin_memory=False)
+    loader = DataLoader(dataset, batch_size=256, shuffle=True, num_workers=0, pin_memory=False)
     output_fullname = str(conf.OUTPUT_DIR)+str(ModelClass.__name__)+"_weights.pth"
     if verbose:
         print("model name:", str(ModelClass.__name__))
@@ -30,13 +25,13 @@ def my_train(datadict, ModelClass, verbose=False):
         mode='min',
         factor=0.1,
         patience=2,
-        threshold=0.005,       # <--- THE MAGIC NUMBER
-        threshold_mode='rel'   # Relative improvement
+        threshold=0.005,    
+        threshold_mode='rel' # Relative improvement
     )
     criterion = nn.MSELoss() # Standard loss for regression (measurements)
     model.train()
     prev_loss = 1
-    for epoch in range(50):
+    for epoch in range(1):
         loop = tqdm(loader, desc=f"Epoch {epoch+1}/50")
         total_loss = 0
         for traj_tuple in loop:
@@ -45,16 +40,6 @@ def my_train(datadict, ModelClass, verbose=False):
             loss = criterion(prediction, *traj_tuple["outputs"])
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-            """
-            # Measure the health of the gradients
-            total_norm = 0.0
-            for p in model.parameters():
-                if p.grad is not None:
-                    param_norm = p.grad.data.norm(2)
-                    total_norm += param_norm.item() ** 2
-            total_norm = total_norm ** 0.5
-            print(f"Gradient Flow: {total_norm:.6f}") # Should be between 0.1 and 5.0
-            """
             optimizer.step()
             total_loss += loss.item()
             loop.set_postfix(loss=loss.item())
@@ -64,7 +49,7 @@ def my_train(datadict, ModelClass, verbose=False):
         scheduler.step(avg_loss)
         print(f"New LR: {optimizer.param_groups[0]['lr']:.2e}")
         prev_loss = avg_loss
-    model.denormalise_weights()
+    model.denormalize_weights()
     torch.save(model.state_dict(), output_fullname)
 
 
@@ -101,15 +86,15 @@ def main():
         args = parser.parse_args()
     except SystemExit:
         sys.exit(1)
-    file_pool = mylib.get_file_pool(args.files, verbose=args.verbose)
+    file_pool = libpool.get_file_pool(args.files, verbose=args.verbose)
     if args.verbose:
         print(f"Dataset class:    {args.dataset}")
         print(f"Model class:    {args.model}")
         print(f"File Pool: {file_pool}")
     
     try:
-        DatasetClass, ds_module = mylib.load_class_from_pool(args.dataset, file_pool, verbose=args.verbose)
-        ModelClass, _ = mylib.load_class_from_pool(args.model, file_pool, verbose=args.verbose)
+        DatasetClass, ds_module = libpool.load_class_from_pool(args.dataset, file_pool, verbose=args.verbose)
+        ModelClass, _ = libpool.load_class_from_pool(args.model, file_pool, verbose=args.verbose)
     except ValueError as e:
         print(f"Error: {e}")
         sys.exit(1)
@@ -119,9 +104,9 @@ def main():
     torch.set_num_threads(8)
 
     print(f"Instantiating Dataset: {DatasetClass.__name__}")
-    dataset = DatasetClass()
+    dataset = DatasetClass(ModelClass.IO_CONFIG)
     print(f"Starting training with model: {ModelClass.__name__}")
-    my_train(dataset.datadict, ModelClass, verbose=args.verbose)
+    my_train(dataset, ModelClass, verbose=args.verbose)
 
 if __name__ == '__main__':
     main()

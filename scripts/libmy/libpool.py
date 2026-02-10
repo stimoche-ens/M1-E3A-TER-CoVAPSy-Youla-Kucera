@@ -1,16 +1,11 @@
 #!/usr/bin/env python3
 
 import os
-import argparse
 import sys
 import glob
 import importlib.util
 import inspect
-import torch
-import torch.nn as nn
-from torch.utils.data import DataLoader
 import conf
-from tqdm import tqdm
 
 def get_file_pool(extra_files=None, verbose=False):
     """
