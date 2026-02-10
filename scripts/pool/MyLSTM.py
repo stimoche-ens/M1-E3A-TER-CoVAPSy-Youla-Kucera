@@ -1,39 +1,72 @@
 #!/usr/bin/env python3
 
-import torch
+#import torch
 import torch.nn as nn
 import conf
+import libmy.libmodel as lmodel
 
-class MyLSTM(nn.Module):
-    @staticmethod
-    def get_onnx_metadata(device='cpu'):
-        """
-        Returns metadata for ONNX export, ensuring tensors are on the correct device.
-        """
-        past_dim = conf.CMD_DIM + conf.LIDAR_DIM # 362
-        return {
-            "input_dummies": (torch.randn(1, conf.PAST_WINDOW, past_dim, device=device), torch.randn(1, conf.FUTURE_WINDOW, conf.CMD_DIM, device=device)),
-            "input_names": ['past_50_steps', 'future_50_cmds'],
-            "output_names": ['future_50_lidar']
-        }
+class MyLSTM(lmodel.NormAwareModule):
+    IO_CONFIG = { # Single Source of Truth
+        "past_window": 50,
+        "future_window": 50,
+        "inputs": [
+            # mode (either "past" or "future") , keys (a list)
+            ("past",   [conf.CMD_SPEED, conf.CMD_ANGLE, conf.MES_LIDAR]), # Index 0: Main Input
+            ("future", [conf.CMD_SPEED, conf.CMD_ANGLE])              # Index 1: Future Cmds
+        ],
+        "outputs": [
+            ("future", [conf.MES_LIDAR])                          # Index 0: Prediction
+        ]
+    }
 
-    def __init__(self, cmd_dim=2, lidar_dim=360, hidden_dim=256):
-        super(MyLSTM, self).__init__()
+    def __init__(self, dataset_stats, hidden_dim=256):
+        #super(MyLSTM, self).__init__()
+        # Initialize Base (builds the Packs from IO_CONFIG)
+        super().__init__(dataset_stats)
         
-        self.encoder = nn.LSTM(input_size=cmd_dim + lidar_dim, hidden_size=hidden_dim, batch_first=True)
-        self.decoder = nn.LSTM(cmd_dim, hidden_size=hidden_dim, batch_first=True)
-        self.output_layer = nn.Linear(hidden_dim, lidar_dim)
+        # --- BUILD LAYERS ---
+        
+        self.encoder = self.build_input_layer(
+            input_idx=0, 
+            LayerClass=nn.LSTM, 
+            hidden_size=hidden_dim, 
+            batch_first=True
+        )
+
+        self.decoder = self.build_input_layer(
+            input_idx=1,
+            LayerClass=nn.LSTM,
+            hidden_size=hidden_dim,
+            batch_first=True
+        )
+
+        self.output = self.build_output_layer(
+            output_idx=0,
+            LayerClass=nn.Linear,
+            in_features=hidden_dim
+        )
 
     def forward(self, past_data, future_cmds, target_lidar=None):
         """
         past_data:   [Batch, 50, 362] (Past Commands + Past LiDAR)
         future_cmds: [Batch, 50, 2]   (Future Commands only)
         """
-        # Run the LSTM over the past 50 steps to get the final "mental state" (hidden state)
-        # _ contains all outputs, we only care about the final (hidden, cell) state
         _, (hidden, cell) = self.encoder(past_data)
         decoder_out, _ = self.decoder(future_cmds, (hidden, cell))
-        return self.output_layer(decoder_out)
+        return self.output(decoder_out)
+
+    #@staticmethod
+    #def get_onnx_metadata(device='cpu'):
+    """
+    Returns metadata for ONNX export, ensuring tensors are on the correct device.
+    """
+    #past_dim = conf.CMD_DIM + conf.LIDAR_DIM # 362
+    #return {
+        #"input_dummies": (torch.randn(1, conf.PAST_WINDOW, past_dim, device=device), torch.randn(1, conf.FUTURE_WINDOW, conf.CMD_DIM, device=device)),
+        #"input_names": ['past_50_steps', 'future_50_cmds'],
+        #"output_names": ['future_50_lidar']
+        #},
+    #}
 
 
 if __name__ == "__main__":
