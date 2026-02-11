@@ -31,10 +31,10 @@ def my_train(dataset, ModelClass, verbose=False):
         threshold_mode='rel' # Relative improvement
     )
 
-    criterion = nn.MSELoss() # Standard loss for regression (measurements)
+    criterion = nn.MSELoss(reduction='sum') # Standard loss for regression (measurements)
     model.train()
     prev_loss = 1
-    for epoch in range(1):
+    for epoch in range(50):
         loop = tqdm(loader, desc=f"Epoch {epoch+1}/50")
         total_loss = 0
         for traj_tuple in loop:
