@@ -14,8 +14,15 @@ else:
 
 class MyArmax(Dataset):
     def __init__(self):
-        self.lidar_index_range=range(-90,100,10)
-        self.past_win = 4
+        self.past_win = 5
+        self.lidar_delta = 2 # number of adjacent lidar angles
+        self.lidar_min = -90
+        self.lidar_max = 90
+        self.lidar_step = 10 # step between two lidar angles
+        if (self.lidar_min - self.lidar_step*self.lidar_delta < -180) or (self.lidar_max + self.lidar_step*self.lidar_delta > 179):
+            print("Error: self.lidar_min and/or self.lidar_max, conjugated with self.lidar_step*self.lidar_delta go out of [-180, 179] bounds")
+            return None
+        self.lidar_index_range=range(self.lidar_min,self.lidar_max + self.lidar_step,self.lidar_step)
         #self.fut_win  = 20
 
         parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -39,13 +46,18 @@ class MyArmax(Dataset):
         
         #t_start = start_row
         #t_end   = start_row + self.past_win + 1
-        lidari=3+180+idx
+        lidari=3+180+self.lidar_index_range[idx]
         totalmatrices = [0 for i in range(0, self.num_trajs)]
         start_row = self.past_win
         for traj_idx in range(0, self.num_trajs):
             cmdmatrix = self.raw_data[traj_idx, start_row:, 0:2]
             lidarmatrix = torch.cat([self.raw_data[traj_idx, start_row-i:-i, lidari:lidari+1] for i in range(1,self.past_win+1)], dim=1)
-            totalmatrices[traj_idx] = torch.cat([cmdmatrix,lidarmatrix], dim=1)
+            if self.lidar_delta:
+                lidarmatrix_deltabefore = torch.cat([torch.cat([self.raw_data[traj_idx, start_row-i:-i, lidari+i_lidar_delta*self.lidar_step:lidari+i_lidar_delta*self.lidar_step+1] for i in range(1,self.past_win+1)], dim=1) for i_lidar_delta in range(-self.lidar_delta,0)], dim=1)
+                lidarmatrix_deltaafter  = torch.cat([torch.cat([self.raw_data[traj_idx, start_row-i:-i, lidari+i_lidar_delta*self.lidar_step:lidari+i_lidar_delta*self.lidar_step+1] for i in range(1,self.past_win+1)], dim=1) for i_lidar_delta in range(1, self.lidar_delta+1)], dim=1)
+                totalmatrices[traj_idx] = torch.cat([cmdmatrix,lidarmatrix_deltabefore,lidarmatrix,lidarmatrix_deltaafter], dim=1)
+            else:
+                totalmatrices[traj_idx] = torch.cat([cmdmatrix,lidarmatrix], dim=1)
         totalmatrix = torch.cat(totalmatrices, dim=0)
         return totalmatrix
 
