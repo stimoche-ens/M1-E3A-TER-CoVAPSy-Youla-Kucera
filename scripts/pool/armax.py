@@ -23,19 +23,17 @@ class MyArmax(Dataset):
             print("Error: self.lidar_min and/or self.lidar_max, conjugated with self.lidar_step*self.lidar_delta go out of [-180, 179] bounds")
             return None
         self.lidar_index_range=range(self.lidar_min,self.lidar_max + self.lidar_step,self.lidar_step)
-        #self.fut_win  = 20
 
         parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
         ctl, meas = load_trajectories(os.path.abspath(os.path.join(parent_dir, conf.DATA_PATH)))
-        speed_i = 0
-        angle_i = 1
-        self.raw_data = torch.cat((ctl,meas),dim=2)
-        self.initial_conditions = self.raw_data[0,0,3:]
-        self.raw_data[:,:,3:] -= self.initial_conditions
-        
+        self.num_trajs = meas.shape[0]
         self.traj_len = meas.shape[1]
         self.subtrajs_per_traj = self.traj_len - (self.past_win+1) + 1 # (self.past_win+1) because nth order implies a0+a1+....+an (n+1 samples)
-        self.num_trajs = meas.shape[0]
+        self.raw_data = torch.cat((ctl,meas),dim=2)
+        for i in range(0,self.num_trajs):
+            initial_conditions = self.raw_data[i,0,3:]
+            self.raw_data[i,:,3:] -= initial_conditions
+        
 
     def __len__(self):
         return len(self.lidar_index_range)
