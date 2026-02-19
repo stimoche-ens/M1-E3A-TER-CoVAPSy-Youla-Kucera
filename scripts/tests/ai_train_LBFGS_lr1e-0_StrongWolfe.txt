@@ -1,0 +1,42 @@
+[nixos@nixos:/mnt/c/Users/user/Nextcloud/Documents/ensps_work/2025-2026-M1-EEA/TER/travail/automatique/identif_dyn/scripts]$ ./ai_train.py -v --dataset=StraightTrack --model=MyLSTM
+Dataset class:    StraightTrack
+Model class:    MyLSTM
+File Pool: ['./pool/ClosedLoopAgent.py', './pool/MyDataTest.py', './pool/NeuralPlanner.py', './pool/dataset.py', './pool/MyLSTMold.py', './pool/MyLSTM.py', './pool/MyTest.py']
+Searching for class 'StraightTrack' in 7 files...
+✅ Found 'StraightTrack' in ./pool/dataset.py
+Searching for class 'MyLSTM' in 7 files...
+✅ Found 'MyLSTM' in ./pool/ClosedLoopAgent.py
+Instantiating Dataset: StraightTrack
+Starting training with model: MyLSTM
+model name: MyLSTM
+output full name: ./outMyLSTM_weights.pth
+Epoch 1/50:  39%|███████████████████████████████████████████████████████▍                                                                                     | 61/155 [01:52<02:27,  1.57s/it, loss=27.4]Epoch 1/50: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 155/155 [04:29<00:00,  1.74s/it, loss=2.73]
+Epoch 1 Average Loss: 139.445897 | Loss improvement: -13844.5897% | Current LR: 1.00e+00
+New LR: 1.00e+00
+Epoch 2/50: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 155/155 [04:28<00:00,  1.73s/it, loss=3.88]
+Epoch 2 Average Loss: 27.098998 | Loss improvement: 80.5667% | Current LR: 1.00e+00
+New LR: 1.00e+00
+Epoch 3/50: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 155/155 [04:39<00:00,  1.80s/it, loss=2.84]
+Epoch 3 Average Loss: 26.909296 | Loss improvement: 0.7000% | Current LR: 1.00e+00
+New LR: 1.00e+00
+Epoch 4/50: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 155/155 [04:35<00:00,  1.78s/it, loss=3.04]
+Epoch 4 Average Loss: 26.775723 | Loss improvement: 0.4964% | Current LR: 1.00e+00
+New LR: 1.00e+00
+Epoch 5/50: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 155/155 [04:32<00:00,  1.76s/it, loss=3.49]
+Epoch 5 Average Loss: 26.640965 | Loss improvement: 0.5033% | Current LR: 1.00e+00
+New LR: 1.00e+00
+Epoch 6/50: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 155/155 [04:34<00:00,  1.77s/it, loss=3.66]
+Epoch 6 Average Loss: 26.583188 | Loss improvement: 0.2169% | Current LR: 1.00e+00
+New LR: 1.00e+00
+Epoch 7/50: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 155/155 [04:38<00:00,  1.79s/it, loss=3.26]
+Epoch 7 Average Loss: 26.535928 | Loss improvement: 0.1778% | Current LR: 1.00e+00
+New LR: 1.00e+00
+Epoch 8/50: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 155/155 [04:33<00:00,  1.76s/it, loss=2.76]
+Epoch 8 Average Loss: 26.443826 | Loss improvement: 0.3471% | Current LR: 1.00e+00
+New LR: 1.00e+00
+Epoch 9/50: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 155/155 [04:40<00:00,  1.81s/it, loss=4.54]
+Epoch 9 Average Loss: 26.368456 | Loss improvement: 0.2850% | Current LR: 1.00e+00
+New LR: 1.00e+00
+Epoch 10/50: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 155/155 [04:34<00:00,  1.77s/it, loss=3]
+Epoch 10 Average Loss: 26.280552 | Loss improvement: 0.3334% | Current LR: 1.00e+00
+New LR: 1.00e+00
