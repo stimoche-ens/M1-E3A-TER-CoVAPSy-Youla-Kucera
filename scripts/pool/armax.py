@@ -140,7 +140,3 @@ if __name__ == "__main__":
     df = pd.DataFrame(p_np)
     df.to_csv("parameters.csv",index=False)
     
-
-
-    
-
