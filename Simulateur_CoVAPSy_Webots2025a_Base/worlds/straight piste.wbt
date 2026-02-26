@@ -1,0 +1,266 @@
+#VRML_SIM R2025a utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "../protos/TT02_2023b.proto"
+
+WorldInfo {
+}
+Viewpoint {
+  orientation -0.23161884366215219 0.9677953777122162 -0.09861449254281177 0.8956386278882623
+  position -56.70320224996671 21.889555834287204 105.09544681877829
+  followType "Mounted Shot"
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+Group {
+}
+Group {
+  children [
+    Solid {
+      translation 45 -0.229993 0.1
+      rotation 0 0 1 3.14159
+      children [
+        Shape {
+          appearance PBRAppearance {
+            baseColor 0 1 0
+            metalness 0
+          }
+          geometry Box {
+            size 100 0.1 0.2
+          }
+        }
+      ]
+      name "droit_50cm_vert(2)"
+      boundingObject Box {
+        size 100 0.1 0.2
+      }
+    }
+    Solid {
+      translation 45 1.66001 0.1
+      rotation 0 0 1 3.14159
+      children [
+        Shape {
+          appearance PBRAppearance {
+            baseColor 0 1 0
+            metalness 0
+          }
+          geometry Box {
+            size 100 0.1 0.2
+          }
+        }
+      ]
+      name "droit_50cm_vert(1)"
+      boundingObject Box {
+        size 100 0.1 0.2
+      }
+    }
+    Solid {
+      translation 94 0.690016 0.1
+      rotation 0 0 1 -1.5707953071795862
+      children [
+        Shape {
+          appearance PBRAppearance {
+            baseColor 0 1 0
+            metalness 0
+          }
+          geometry Box {
+            size 3 0.1 0.2
+          }
+        }
+      ]
+      name "droit_1m(7)"
+      boundingObject Box {
+        size 3 0.1 0.2
+      }
+    }
+    Solid {
+      translation -4.87 0.689982 0.1
+      rotation 0 0 1 -1.5707953071795862
+      children [
+        Shape {
+          appearance PBRAppearance {
+            baseColor 0 1 0
+            metalness 0
+          }
+          geometry Box {
+            size 3 0.1 0.2
+          }
+        }
+      ]
+      name "droit_1m(1)"
+      boundingObject Box {
+        size 3 0.1 0.2
+      }
+    }
+    Solid {
+      translation -2.86 3.53998 0.1
+      rotation 0 0 1 -1.5707953071795862
+      children [
+        Shape {
+          appearance PBRAppearance {
+            baseColor 0 1 0
+            metalness 0
+          }
+          geometry Box {
+            size 3 0.1 0.2
+          }
+        }
+      ]
+      name "droit_1m(2)"
+      boundingObject Box {
+        size 3 0.1 0.2
+      }
+    }
+    Solid {
+      translation -0.29 3.53998 0.1
+      rotation 0 0 1 -1.5707953071795862
+      children [
+        Shape {
+          appearance PBRAppearance {
+            baseColor 0 1 0
+            metalness 0
+          }
+          geometry Box {
+            size 3 0.1 0.2
+          }
+        }
+      ]
+      name "droit_1m(3)"
+      boundingObject Box {
+        size 3 0.1 0.2
+      }
+    }
+    Solid {
+      translation -1.52 4.45998 0.1
+      rotation 0 0 1 1.01503e-06
+      children [
+        Shape {
+          appearance PBRAppearance {
+            baseColor 0 1 0
+            metalness 0
+          }
+          geometry Box {
+            size 3 0.1 0.2
+          }
+        }
+      ]
+      name "droit_1m(4)"
+      boundingObject Box {
+        size 3 0.1 0.2
+      }
+    }
+    Solid {
+      translation -1.52 2.19998 0.1
+      rotation 0 0 1 1.01503e-06
+      children [
+        Shape {
+          appearance PBRAppearance {
+            baseColor 0 1 0
+            metalness 0
+          }
+          geometry Box {
+            size 3 0.1 0.2
+          }
+        }
+      ]
+      name "droit_1m(5)"
+      boundingObject Box {
+        size 3 0.1 0.2
+      }
+    }
+  ]
+}
+Solid {
+  translation 0 0.5 -0.05
+  children [
+    Shape {
+      appearance PBRAppearance {
+      }
+      geometry Box {
+        size 200 10 0.1
+      }
+    }
+  ]
+  name "sol_piste"
+  boundingObject Shape {
+    geometry Box {
+      size 200 10 0.1
+    }
+  }
+}
+TT02_2023b {
+  hidden position_0_0 8.549030691804215e-15
+  hidden position2_0_0 -5.269085820436549e-07
+  hidden position_0_1 6.0014188798146435e-15
+  hidden position2_0_1 -4.925230615016249e-07
+  hidden position_0_2 9.203797422271362e-07
+  hidden position_0_3 1.0176045915696822e-06
+  hidden linearVelocity_0 -1.5973236736054615e-12 2.4522818907537473e-12 -6.737663239131728e-16
+  hidden angularVelocity_0 4.696808168276394e-13 -6.448296598848729e-13 -3.384629607614242e-12
+  hidden rotation_1 0.116467665500253 -0.9926250658818185 0.03362679699342013 2.583368128436272
+  hidden linearVelocity_1 -1.3254352178132968e-12 2.9010218672602826e-12 -4.660773823799069e-14
+  hidden angularVelocity_1 -1.6649457013139531e-10 -1.0389459670160514e-10 -3.3836528811205114e-12
+  hidden rotation_2 0.0801897901943782 -0.9835885534059571 -0.16162659173959615 5.348830671492954
+  hidden linearVelocity_2 -1.0591334146778408e-12 2.483963916233582e-12 5.993577704087716e-14
+  hidden angularVelocity_2 -8.055401829391402e-11 -5.073088506235444e-11 -3.3830351009945256e-12
+  hidden rotation_3 0 -0.9999999999999999 0 3.5301166968742708
+  hidden linearVelocity_3 -2.063861426076759e-12 2.4602196788128543e-12 -6.009734787828966e-14
+  hidden angularVelocity_3 2.5696800560878394e-13 -7.776853611759228e-13 -3.384987373541944e-12
+  hidden rotation_4 0 0.9999999999999999 0 3.2290232636944474
+  hidden linearVelocity_4 -1.7983813053662207e-12 2.013511755888848e-12 4.555766526924492e-14
+  hidden angularVelocity_4 2.9563019479990645e-13 -7.642568523568771e-13 -3.3863837365472068e-12
+  translation -0.6338529943542647 4.01437421164722 0.039289787116576345
+  rotation 5.263829696100963e-05 -2.8982341361775894e-05 0.9999999981946168 2.1245234924409946
+  name "TT02_violette"
+  controller "controller_violet"
+  color 0.5 0 0.6
+}
+TT02_2023b {
+  hidden position_0_0 -1.818074673346887e-17
+  hidden position2_0_0 -2.0079285998654573e-13
+  hidden position_0_1 6.18048238446836e-16
+  hidden position2_0_1 -2.008618965598779e-13
+  hidden position_0_2 4.227373118261014e-15
+  hidden position_0_3 5.723244226963887e-15
+  hidden linearVelocity_0 -1.097543520463832e-08 1.972273400645586e-08 -1.8700158489011624e-06
+  hidden angularVelocity_0 -2.407064507383438e-07 -1.33949900670181e-07 2.3129119295380454e-15
+  hidden linearVelocity_1 -5.363022193671764e-09 9.637292920559827e-09 -1.8347766003673997e-06
+  hidden angularVelocity_1 -2.4070617294490435e-07 -1.3394975768925193e-07 4.09944734107685e-15
+  hidden linearVelocity_2 -5.3630237335148114e-09 9.637291197869814e-09 -1.83477660016553e-06
+  hidden angularVelocity_2 -2.407061851314059e-07 -1.339497213417803e-07 3.5459605656799575e-15
+  hidden linearVelocity_3 -5.353206535036692e-09 9.619654743608155e-09 -1.905661446946123e-06
+  hidden angularVelocity_3 -2.406895301246102e-07 -1.3394050700963884e-07 4.687506624149867e-15
+  hidden linearVelocity_4 -5.353208803684434e-09 9.619653643969722e-09 -1.905661444361457e-06
+  hidden angularVelocity_4 -2.4068955769256627e-07 -1.3394048581715678e-07 2.725293089401559e-15
+  translation -0.9803905203767602 3.3993519801611685 0.03929002479525816
+  rotation -5.248758229179992e-05 -8.927600734774741e-05 -0.9999999946374241 1.0629866424407242
+  name "TT02_bleue_C"
+  controller "my_controller_c"
+  color 0.2 0.2 1
+}
+TT02_2023b {
+  hidden position_0_0 -1.204228078697631e-16
+  hidden position2_0_0 -3.533222344504486e-11
+  hidden position_0_1 1.2096222049808842e-16
+  hidden position2_0_1 -3.533185010430274e-11
+  hidden position_0_2 3.53945270771726e-11
+  hidden position_0_3 3.5434715009301376e-11
+  hidden linearVelocity_0 4.627881718478083e-15 -8.185962043125087e-16 4.4917754927544853e-17
+  hidden angularVelocity_0 -1.607758783876254e-16 9.351155250357546e-16 -4.181923887985308e-15
+  hidden linearVelocity_1 6.3908887528997614e-15 -7.832811259847118e-16 1.6156057034166996e-16
+  hidden angularVelocity_1 3.5192856546848076e-14 1.5988207567366839e-15 -4.186067534607715e-15
+  hidden linearVelocity_2 5.944426355722969e-15 -9.016462560790129e-16 8.079726046088444e-17
+  hidden angularVelocity_2 1.005510272745932e-14 1.4547570393000912e-15 -4.194358789852165e-15
+  hidden linearVelocity_3 -6.7830953061466355e-15 8.123792710234507e-16 -4.846377689411824e-16
+  hidden angularVelocity_3 -2.0110206786686915e-14 5.401097341547626e-16 -4.1970252797227465e-15
+  hidden linearVelocity_4 -5.375905787463766e-15 1.8161201922325244e-16 1.130906074221346e-15
+  hidden angularVelocity_4 1.0055104862298994e-14 8.609304133808251e-16 -4.1836343604341525e-15
+  translation -4.059694188745498 0.7202840000002971 0.03928978199573738
+  rotation -7.084772899822307e-08 -0.9999999999999976 -8.131300211064726e-11 0.00010501013732442638
+  name "TT02_jaune_python"
+  controller "controller_jaune"
+  color 0.69 0.7 0.2
+}
