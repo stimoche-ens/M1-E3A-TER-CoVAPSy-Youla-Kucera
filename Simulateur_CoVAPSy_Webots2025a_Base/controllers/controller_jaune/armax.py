@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
-import torch
-from torch.utils.data import Dataset
 import pandas as pd
 import numpy as np
-import glob
 import sys
 import os
 if __name__ == "__main__":
@@ -12,7 +9,7 @@ if __name__ == "__main__":
 else:
     import conf
 
-class MyLinPerturb(Dataset):
+class MyLinPerturb:
     def init_cfg(self):
         self.win_radius = 5
         self.lidar_delta = 2 # number of adjacent lidar angles
