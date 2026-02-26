@@ -28,9 +28,9 @@ class MyLinPerturb(Dataset):
         self.lidar_extindex_range=np.array(range(self.lidar_offset0 + self.lidar_min - self.lidar_delta*self.lidar_step, self.lidar_offset0 + self.lidar_max + self.lidar_delta*self.lidar_step + self.lidar_step, self.lidar_step))
         self.lidar_extindex_size=len(self.lidar_extindex_range)
 
-    def init_params(self, params)
-        #self.params_lidar = [parameters[2+(2+(2*self.lidar_delta+1)*self.win_radius)*lidar_index_index:(2+(2*self.lidar_delta+1)*self.win_radius)*(lidar_index_index+1)] for lidar_index_index in range(0,self.lidar_index_size)]
-        #self.params_cmd   = [parameters[(2+(2*self.lidar_delta+1)*self.win_radius)*lidar_index_index:2+(2+(2*self.lidar_delta+1)*self.win_radius)*lidar_index_index] for lidar_index_index in range(0,self.lidar_index_size)]
+    def init_params(self)
+        df = pd.read_csv('parameters.csv')
+        params = df.to_numpy()
         self.params_lidar = params[:self.lidartoep.size(1)]
         self.params_cmd = params[self.lidartoep.size(1):]
         self.params_lidar_inv = np.zeros([len(self.params_lidar)])
@@ -64,7 +64,7 @@ class MyLinPerturb(Dataset):
         self.cmdtoep = np.zeros((self.lidartoep_block_height*(self.win_radius+1), self.lidar_extindex_size*2*self.win_radius)) # all Toeplitz blocks
         self.lidartoep = np.zeros((self.lidartoep_block_height*(self.win_radius+1), self.win_radius*(2*sum(range(self.lidar_delta+1, 2*self.lidar_delta+1)) + self.lidar_index_size))) # all Toeplitz blocks
 
-    def __init__(self, parameters, goal_speed, first_lidar):
+    def __init__(self, goal_speed, first_lidar):
         self.speed0 = goal_speed
         self.lidar0 = self.filter_lidar(first_lidar)
         self.tick = 0
@@ -74,7 +74,7 @@ class MyLinPerturb(Dataset):
             return None
         self.init_lidar_idx()
         self.init_states()
-        self.init_params(parameters)
+        self.init_params()
 
     def propagate_past_state_1time(self, past_idx, toep, toep_subblock_idx_w):
         toep[self.lidartoep_subblock_idx_h+self.lidartoep_block_height*(past_idx+1), toep_subblock_idx_w[:,1:]] = toep[self.lidartoep_subblock_idx_h+self.lidartoep_block_height*past_idx, toep_subblock_idx_w[:,:-1]]
@@ -100,7 +100,6 @@ class MyLinPerturb(Dataset):
             predicted_angles = self.lidartoep@self.params_lidar_inv + self.cmdtoep@self.params_cmd_inv
             self.cmds_fut[step+1,1]   = np.mean(predicted_angles)
             self.update_state_instant(step+1, 0, self.cmdtoep, self.cmdtoep_subblock_idx_w_1, [self.speed0, self.cmds_fut[step+1,1]], None)
-            
 
     def filter_lidar(self, lidar):
         return lidar[self.lidar_extindex_range] #[lidar[i] for i in self.lidar_extindex_range]
@@ -115,29 +114,6 @@ class MyLinPerturb(Dataset):
         self.update_state_past(1, 1, self.cmdtoep, self.cmdtoep_subblock_idx_w_1, cmd_rdy, None)
         self.state_timestep(self.lidartoep, self.lidartoep_block_height)
 
-"""
-    def lidar_to_lidar_state(self):
-        block_width = self.lidar_1_idx.size(1)
-        for lidar_col in range(0, self.lidar_index_size):
-            for k in range(0, block_width):
-                t0_col, t0_time = self.lidar_1_idx[0,k]
-                self.lidar_1_state[0, k] = self.lidar[self.lidar_delta + lidar_col + t0_col, t0_time+0]
-            self.lidar_state[(self.win_radius+1)*lidar_col:(self.win_radius+1)*lidar_col+1, block_width*lidar_col:(block_width+1)*lidar_col] = self.lidar_1_state
-
-        for t0 in range(1, self.win_radius+1):
-            for lidar_col in range(0, self.lidar_index_size):
-                blockcol=0
-                for i in range(-self.lidar_delta, self.lidar_delta+1):
-                    self.lidar_1_state[0, blockcol] = numpy.dot(self.lidar_state[t0-1+(self.win_radius+1)*lidar_col, block_width*lidar_col+blockcol-1:block_width*lidar_col+blockcol-1])
-                    for j in range(1, self.win_radius):
-                        self.lidar_1_state[0, blockcol+j] = self.lidar_state[t0-1+(self.win_radius+1)*lidar_col, block_width*lidar_col+blockcol+j-1]
-                    blockcol += self.win_radius
-
-                for k in range(0, block_width):
-                    
-            self.lidar_state[t0+(self.win_radius+1)*lidar_col:t0+(self.win_radius+1)*lidar_col+1, block_width*lidar_col:(block_width+1)*lidar_col] = self.lidar_1_state
-"""
-
     def control(self, cmd_speed, cmd_angle, lidar_meas):
         lidarrdy = lidar_meas[self.lidar_extindex_range] - self.lidar0
         cmdrdy = cmd_angle - np.array([self.speed0,0])
@@ -151,35 +127,3 @@ class MyLinPerturb(Dataset):
             self.plan_lidar_trajectory()
         return self.cmds_fut[1,:]
         self.tick = (self.tick+1)%self.win_radius
-
-
-if __name__ == "__main__":
-    print("data loading main")
-    armax = MyArmax()
-    print("done loading")
-    print(armax[0].size())
-    block0 = armax[0]
-    nb_blocks = len(armax)
-    block_width = block0.size(1)
-    block_height = block0.size(0)
-    toeplitz_rows = [0 for i in range(0, nb_blocks)]
-    for i in range(0,nb_blocks):
-        print("block", i, ": begin")
-        cols_before = torch.zeros((block_height, i*block_width))
-        cols_after  = torch.zeros((block_height, (nb_blocks-i-1)*block_width))
-        print("catting colons...")
-        new_row = torch.cat((cols_before, armax[i], cols_after), dim=1)
-        toeplitz_rows[i] = new_row
-    print(f"Done with blocks, creating giant toeplitz of size ({block_height*nb_blocks},{block_width*nb_blocks})...")
-    toeplitz = torch.cat(toeplitz_rows, dim=0)
-    print("Done creating giant toeplitz")
-    AT = torch.transpose(toeplitz,0,1)
-    ATA_1 = torch.inverse(torch.matmul(AT, toeplitz))
-    ATA_1AT = torch.matmul(ATA_1, AT)
-    print("Done calculating final MATRIX. Final size: ", ATA_1AT.size())
-    parameters = torch.matmul(ATA_1AT, armax.get_datavec())
-    print(f"Done calculating final parameters. Size of parameters: {parameters.size()}")
-    p_np = parameters.numpy()
-    df = pd.DataFrame(p_np)
-    df.to_csv("parameters.csv",index=False)
-    
