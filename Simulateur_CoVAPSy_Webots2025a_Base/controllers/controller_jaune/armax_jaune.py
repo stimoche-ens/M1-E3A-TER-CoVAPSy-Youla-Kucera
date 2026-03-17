@@ -48,13 +48,14 @@ def pad_2Dseq_start(seq, pad_len, copy_init_value=False):
 
 class MyLinPerturb:
     def init_cfg(self):
-        self.win_radius = 5
-        self.lidar_delta = 2 # number of adjacent lidar angles
+        self.win_radius = 1
+        self.lidar_delta = 0 # number of adjacent lidar angles
         self.lidar_min = -90
         self.lidar_max = 90
         self.lidar_step = 10 # step between two lidar angles
         self.lidar_offset0 = 3+180
         self.lidar_maxstep = 30
+        self.my_lambda=0.005
 
     def init_lidar_idx(self):
         self.lidar_index_range=np.array(range(self.lidar_offset0 + self.lidar_min, self.lidar_offset0 + self.lidar_max + self.lidar_step, self.lidar_step))
@@ -66,7 +67,7 @@ class MyLinPerturb:
     def init_states(self): #lidar_rdy = lidar[self.lidar_extindex_range] - self.lidar0
         self.lidars_fut = np.zeros([self.win_radius+1,self.lidar_extindex_size])
         self.cmds_fut   = np.zeros([self.win_radius+1,2])
-        self.lidartoep_block_height    = 4*self.lidar_delta+1
+        self.lidartoep_block_height    = self.lidar_extindex_size#4*self.lidar_delta+1
         self.lidartoep_subblock_width_min  = (self.lidar_delta+1)
         self.lidartoep_subblock_width_max  = (2*self.lidar_delta+1)
         self.lidartoep_subblock_idx_w  = [0 for i in self.lidar_extindex_range]
@@ -78,7 +79,7 @@ class MyLinPerturb:
         block_offset = 0
         for angle_i in range(0,self.lidar_extindex_size):
             size = min([self.lidartoep_subblock_width_min+self.lidar_extindex_size-1-angle_i,self.lidartoep_subblock_width_min+angle_i,self.lidartoep_subblock_width_max])
-            self.lidarrdy_subblock_idx[angle_i] = np.array(range(0,size))+max([0,angle_i-self.win_radius])
+            self.lidarrdy_subblock_idx[angle_i] = np.array(range(0,size))+max([0,angle_i-self.lidar_delta])
             self.lidartoep_subblock_idx_w[angle_i] = np.array(range(0,size*self.win_radius))+block_offset
             self.lidartoep_subblock_idx_w_1[angle_i] = self.lidartoep_subblock_idx_w[angle_i][::self.win_radius]
             block_offset += size*self.win_radius
@@ -99,8 +100,11 @@ class MyLinPerturb:
         self.ctl_flip  -= [self.speed0,0]
         self.ctl_flip = np.flip(self.ctl_flip, axis=1)
         self.meas_flip = np.flip(self.meas_flip, axis=1)
-        self.num_trajs = meas.shape[0]
-        self.traj_len = meas.shape[1]
+        self.ctl_flip = self.ctl_flip[:,::5,:]
+        self.meas_flip = self.meas_flip[:,::5,:]
+        self.num_trajs = self.meas_flip.shape[0]
+        self.traj_len = self.meas_flip.shape[1]
+        print(f"traj_len: {self.traj_len}")
         self.subtrajs_per_traj = self.traj_len - (self.win_radius+1) + 1 # (self.win_radius+1) because nth order implies a0+a1+....+an (n+1 samples)
         #self.raw_data = torch.cat((ctl,meas),dim=2)
         #for i in range(0,self.num_trajs):
@@ -110,8 +114,8 @@ class MyLinPerturb:
     def init_params(self):
         df = pd.read_csv('parameters.csv')
         params = df.to_numpy()
-        self.params_lidar = params[:self.lidartoep.size(1)]
-        self.params_cmd = params[self.lidartoep.size(1):]
+        self.params_lidar = params[:self.lidartoep.shape[1]]
+        self.params_cmd = params[self.lidartoep.shape[1]:]
         self.params_lidar_inv = np.zeros([len(self.params_lidar)])
         self.params_cmd_inv = np.zeros([len(self.params_cmd)])
         self.params_lidar_inv[self.lidartoep_subblock_idx_w] = -self.params_lidar[self.lidartoep_subblock_idx_w]/self.params_cmd[self.cmdtoep_subblock_idx_w_1[:,1:2]]
@@ -216,7 +220,12 @@ class MyLinPerturb:
         datavecs = [0 for i in range(self.num_trajs)]
         for traj_idx in range(self.num_trajs):
             datavecs[traj_idx] = self.meas_flip[traj_idx, start_row:, :]
+            #print(f"datavecs[{traj_idx}] content: ", datavecs[traj_idx])
+            #print(f"datavecs[{traj_idx}] size: ", datavecs[traj_idx].shape)
+
         datavec = np.concatenate(datavecs, axis=0).reshape((-1), order='C')
+        print("datavec shape: ", datavec.shape)
+        return datavec
         #print(f"start_row: {start_row}")
         #for lidar_index_index in range(0, self.lidar_index_size):
             #datavec_blocks[lidar_index_index] = self.meas[:,start_row:,lidari].contiguous().view(-1, 1)
@@ -225,16 +234,30 @@ class MyLinPerturb:
     def train_params(self):
         print("Creating giant toeplitz of size")
         toeplitz = torch.from_numpy(self.get_training_toep())
+        col_norms = torch.norm(toeplitz, dim=0)
+        print("min col norm:", col_norms.min())
+        print("zero columns:", torch.where(col_norms==0)[0])
+        coverage = torch.sum(torch.abs(toeplitz), dim=0) > 0
+        print("coverage ratio:", coverage.float().mean())
+        print("missing columns:", torch.where(~coverage)[0])
+        print("rank:", torch.linalg.matrix_rank(toeplitz))
+        s = torch.linalg.svdvals(toeplitz)
+        print("svdvals[-20:]:",s[-20:])
+        #U,S,Vh = torch.linalg.svd(toeplitz)
+        #null = Vh[S < 1e-8]
+        #print("null.shape:", null.shape)
         print("Done creating giant toeplitz")
         AT = torch.transpose(toeplitz,0,1)
         print(f"Done transposing giant toeplitz. size: {AT.size()}")
         ATA = torch.matmul(AT, toeplitz)
         print(f"Done creating ATA. size: {ATA.size()}")
-        print(ATA[12:16,12:16])
-        ATA_1 = torch.inverse(ATA)
+        print(ATA[9:16,9:16])
+        print(ATA[:,10])
+        ATA_lI = ATA + torch.diag(torch.ones(ATA.size(1)),0)*self.my_lambda
+        ATA_1 = torch.inverse(ATA_lI)
         ATA_1AT = torch.matmul(ATA_1, AT)
         print("Done calculating final MATRIX. Final size: ", ATA_1AT.size())
-        parameters = torch.matmul(ATA_1AT, torch.from_numpy(self.get_datavec()))
+        parameters = torch.matmul(ATA_1AT, torch.from_numpy(self.get_datavec()).to(ATA_1AT.dtype))
         print(f"Done calculating final parameters. Size of parameters: {parameters.size()}")
         p_np = parameters.numpy()
         df = pd.DataFrame(p_np)
@@ -269,13 +292,16 @@ if __name__ == "__main__":
     scripts_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../automatique/identif_dyn/scripts'))
     ctl, meas = load_trajectories(os.path.abspath(os.path.join(scripts_dir, conf.DATA_PATH)))
     armax = MyLinPerturb(1,meas[0,0,:].numpy())
+    print("done loading")
+    """
     print("done loading, creating giant toeplitz of size")
     toeplitz = armax.get_training_toep()
     print("Done creating giant toeplitz")
     AT = torch.transpose(toeplitz,0,1)
     ATA = torch.matmul(AT, toeplitz)
+    ATA_lI = ATA + torch.diag(torch.ones(ATA.size(1)),0)*armax.my_lambda
     print("Done creating ATA")
-    ATA_1 = torch.inverse(ATA)
+    ATA_1 = torch.inverse(ATA_lI)
     ATA_1AT = torch.matmul(ATA_1, AT)
     print("Done calculating final MATRIX. Final size: ", ATA_1AT.size())
     parameters = torch.matmul(ATA_1AT, armax.get_datavec())
@@ -283,4 +309,5 @@ if __name__ == "__main__":
     p_np = parameters.numpy()
     df = pd.DataFrame(p_np)
     df.to_csv("parameters.csv",index=False)
+    """
     
