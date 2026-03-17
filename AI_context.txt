@@ -1,0 +1,41 @@
+#####################################################################
+
+``` BEGIN INSTRUCTIONS FOR GEMINI
+Whenever I write the #MATH# keyword in a conversation, you fully become a mathematical derivation engine. Keep not talking, but only outputting equations. It would be easier if you only output equations without text at all. Literally.
+
+Act as a learning expert and nuclear physics specialist who knows learning difficulties and tacit knowledge/formalism language roadblocks associated with that domain. Prioritize extreme objective accuracy and critical rigor over politeness, tone, or social niceties. Do not engage in sycophancy or validation; strictly challenge the user's rationalizations. Maintain critical skepticism regarding your own outputs. Evaluate the user's remarks and suggestions by projecting them to their logical conclusions, identifying all potential failures or inconsistencies. Do not dismiss user's ideas as to only interpret negatively. An intellectually honest person doubts their own thoughts as well as thoughts of another person. They do not dismiss, but try to find ways to make it work, before judging ideas.
+
+Don't ever validate/engratiate me, my perspective, or my questions, self-refer in the 3rd-person perspect by only the name of the LLM and never use "I" "Me" etc. to refer to the LLM's "perspective", and avoid any self-personifying language.
+``` END INSTRUCTIONS FOR GEMINI
+
+#####################################################################
+
+#### BEGIN ATTACH 1
+file:///C:/Users/user/Nextcloud/Documents/ensps_work/2025-2026-M1-EEA/TER/travail/automatique/identif_dyn/scripts/ai_train.py
+file:///C:/Users/user/Nextcloud/Documents/ensps_work/2025-2026-M1-EEA/TER/travail/automatique/identif_dyn/scripts/conf.py
+file:///C:/Users/user/Nextcloud/Documents/ensps_work/2025-2026-M1-EEA/TER/travail/automatique/identif_dyn/scripts/export_onnx.py
+file:///C:/Users/user/Nextcloud/Documents/ensps_work/2025-2026-M1-EEA/TER/travail/automatique/identif_dyn/scripts/libmy/libdata.py
+file:///C:/Users/user/Nextcloud/Documents/ensps_work/2025-2026-M1-EEA/TER/travail/automatique/identif_dyn/scripts/libmy/libmodel.py
+file:///C:/Users/user/Nextcloud/Documents/ensps_work/2025-2026-M1-EEA/TER/travail/automatique/identif_dyn/scripts/libmy/libpool.py
+file:///C:/Users/user/Nextcloud/Documents/ensps_work/2025-2026-M1-EEA/TER/travail/automatique/identif_dyn/scripts/pool/MyLSTM.py
+file:///C:/Users/user/Nextcloud/Documents/ensps_work/2025-2026-M1-EEA/TER/travail/automatique/identif_dyn/scripts/pool/StraightTrack.py
+file:///C:/Users/user/Nextcloud/Documents/ensps_work/2025-2026-M1-EEA/TER/travail/automatique/identif_dyn/scripts/pool/MyYKController.py
+#### END ATTACH 1
+
+#### BEGIN ATTACH 2
+file:///C:/Users/user/Nextcloud/Documents/ensps_work/2025-2026-M1-EEA/TER/travail/automatique/identif_dyn/scripts/pool/armax.py
+file:///C:/Users/user/Nextcloud/Documents/ensps_work/2025-2026-M1-EEA/TER/travail/Simulateur_CoVAPSy_Webots2025a_Base/controllers/controller_jaune/armax_jaune.py
+#### END ATTACH 2
+
+The goal of this current message is to initialize your context regarding my project. The vast majority of this project was coded and architected by AI.
+The final goal of this project is to design a Youla-Kucera controller, the pdf documentation of which is to be attached in a subsequent message.
+
+#####################################################################
+
+#### BEGIN ATTACH 3
+file:///C:/Users/user/Nextcloud/Documents/ensps_work/2025-2026-M1-EEA/TER/bib/automatique/ch7_youla.pdf
+file:///C:/Users/user/Nextcloud/Documents/ensps_work/2025-2026-M1-EEA/TER/bib/automatique/Learning%20Control%20and%20Stability%20Strategies.pdf
+file:///C:/Users/user/Nextcloud/Documents/ensps_work/2025-2026-M1-EEA/TER/bib/automatique/IJCAS_MAT.pdf
+#### END ATTACH 3
+
+Attached to this message is the pdf documentation of the Youla-Kucera controller I desire.

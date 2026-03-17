@@ -33,7 +33,9 @@ class MyArmax(Dataset):
         for i in range(0,self.num_trajs):
             initial_conditions = self.raw_data[i,0,3:]
             self.raw_data[i,:,3:] -= initial_conditions
-        
+        self.ctl = ctl.numpy()
+        self.meas = meas.numpy()
+        self.meas -= self.meas[:,0:1,:]
 
     def __len__(self):
         return len(self.lidar_index_range)
@@ -69,9 +71,6 @@ class MyArmax(Dataset):
             datavec_blocks[lidar_index_index] = self.raw_data[:,start_row:,lidari].contiguous().view(-1, 1)
         return torch.squeeze(torch.cat(datavec_blocks,dim=0))
 
-
-
-
 def load_trajectories(datafiles_path):
     sequences = []
     targets = []
@@ -91,9 +90,6 @@ def load_trajectories(datafiles_path):
     measures_padded = pad_2Dseq_start(targets, 10, True)
     return controls_padded, measures_padded
 
-
-
-
 def pad_2D_start(mat, pad_len, copy_init_value=False):
     if copy_init_value:
         init_padding = mat[0:1,:].expand(pad_len,-1)
@@ -102,13 +98,11 @@ def pad_2D_start(mat, pad_len, copy_init_value=False):
         init_padding = torch.zeros(pad_len, pad_width)
     return torch.cat([init_padding,mat], dim=0)
 
-
 def pad_2Dseq_start(seq, pad_len, copy_init_value=False):
     max_seqlen = max([s.size(0) for s in seq])
     seq_out = [pad_2D_start(s,pad_len+max_seqlen - s.size(0), copy_init_value) for s in seq]
     output_tensor = torch.stack(seq_out, dim=0)
     return output_tensor
-
 
 if __name__ == "__main__":
     print("data loading main")

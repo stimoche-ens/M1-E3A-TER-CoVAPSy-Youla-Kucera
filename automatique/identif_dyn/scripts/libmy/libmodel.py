@@ -88,11 +88,43 @@ class RNNAdapter(LayerAdapter):
         raise NotImplementedError("RNNs cannot be automatically denormalized as outputs.")
 
 
+class Conv1dAdapter(LayerAdapter):
+    """Handles nn.Conv1d for temporal/FIR filters."""
+    def denorm_input(self, scale, offset):
+        # weight shape: (out_channels, in_channels, kernel_size)
+        # scale/offset shape: (in_channels,)
+        # We broadcast scale and offset to (1, in_channels, 1)
+        scale_view = scale.view(1, -1, 1)
+        offset_view = offset.view(1, -1, 1)
+        
+        # W_new = W_old / scale
+        self.layer.weight.data /= scale_view
+        
+        # B_new = B_old - sum_over_in_and_time(W_new * offset)
+        shift = torch.sum(self.layer.weight.data * offset_view, dim=(1, 2))
+        
+        if self.layer.bias is not None:
+            self.layer.bias.data -= shift
+
+    def denorm_output(self, scale, offset):
+        # scale/offset shape: (out_channels,)
+        scale_view = scale.view(-1, 1, 1)
+        self.layer.weight.data *= scale_view
+        
+        if self.layer.bias is not None:
+            self.layer.bias.data *= scale
+            self.layer.bias.data += offset
+
+
+
+
 def get_adapter(layer):
     if isinstance(layer, (nn.LSTM, nn.GRU, nn.RNN)):
         return RNNAdapter(layer)
     elif isinstance(layer, nn.Linear):
         return LinearAdapter(layer)
+    elif isinstance(layer, nn.Conv1d):    # <--- ADD THIS
+        return Conv1dAdapter(layer)       # <--- ADD THIS
     # Add Conv1dAdapter, Conv2dAdapter here as needed
     else:
         raise ValueError(f"No adapter found for layer type: {type(layer)}")

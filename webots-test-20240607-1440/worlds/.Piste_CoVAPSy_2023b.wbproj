@@ -5,5 +5,5 @@ sceneTreePerspectives: 000000ff000000010000000300000026000000c0000000fa010000000
 maximizedDockId: -1
 centralWidgetVisible: 1
 orthographicViewHeight: 1
-textFiles: 0 "../webots-test-20240607-1440/controllers/controller_violet/controller_violet.py"
+textFiles: 0 "controllers/controller_violet/controller_violet.py"
 consoles: Console:All:All
