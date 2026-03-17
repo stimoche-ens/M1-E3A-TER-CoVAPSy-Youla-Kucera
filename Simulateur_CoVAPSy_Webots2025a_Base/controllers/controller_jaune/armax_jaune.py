@@ -48,8 +48,8 @@ def pad_2Dseq_start(seq, pad_len, copy_init_value=False):
 
 class MyLinPerturb:
     def init_cfg(self):
-        self.win_radius = 1
-        self.lidar_delta = 0 # number of adjacent lidar angles
+        self.win_radius = 5
+        self.lidar_delta = 2 # number of adjacent lidar angles
         self.lidar_min = -90
         self.lidar_max = 90
         self.lidar_step = 10 # step between two lidar angles
@@ -89,6 +89,8 @@ class MyLinPerturb:
         self.cmdtoep = np.zeros((self.lidartoep_block_height*(self.win_radius+1), self.lidar_extindex_size*2*(self.win_radius+1))) # all Toeplitz blocks
         self.lidartoep_width = self.win_radius*(2*sum(range(self.lidar_delta+1, 2*self.lidar_delta+1)) + self.lidar_index_size*(2*self.lidar_delta+1))
         self.lidartoep = np.zeros((self.lidartoep_block_height*(self.win_radius+1), self.lidartoep_width)) # all Toeplitz blocks
+        #print("self.cmdtoep_subblock_idx_w.shape",self.cmdtoep_subblock_idx_w)
+        #print("self.lidartoep_subblock_idx_w.shape",self.lidartoep_subblock_idx_w)
 
     def init_training_data(self):
         scripts_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../automatique/identif_dyn/scripts'))
@@ -106,10 +108,6 @@ class MyLinPerturb:
         self.traj_len = self.meas_flip.shape[1]
         print(f"traj_len: {self.traj_len}")
         self.subtrajs_per_traj = self.traj_len - (self.win_radius+1) + 1 # (self.win_radius+1) because nth order implies a0+a1+....+an (n+1 samples)
-        #self.raw_data = torch.cat((ctl,meas),dim=2)
-        #for i in range(0,self.num_trajs):
-            #initial_conditions = self.raw_data[i,0,3:]
-            #self.raw_data[i,:,3:] -= initial_conditions
 
     def init_params(self):
         df = pd.read_csv('parameters.csv')
@@ -118,11 +116,24 @@ class MyLinPerturb:
         self.params_cmd = params[self.lidartoep.shape[1]:]
         self.params_lidar_inv = np.zeros([len(self.params_lidar)])
         self.params_cmd_inv = np.zeros([len(self.params_cmd)])
-        self.params_lidar_inv[self.lidartoep_subblock_idx_w] = -self.params_lidar[self.lidartoep_subblock_idx_w]/self.params_cmd[self.cmdtoep_subblock_idx_w_1[:,1:2]]
-        self.params_cmd_inv[self.lidartoep_subblock_idx_w]   = -self.params_cmd[self.cmdtoep_subblock_idx_w]/self.params_cmd[self.cmdtoep_subblock_idx_w_1[:,1:2]]
-        self.params_cmd_inv[self.lidartoep_subblock_idx_w_1[:,1:2]] = 1/self.params_cmd[self.cmdtoep_subblock_idx_w_1[:,1:2]]
+        """
+        print("self.params_lidar_inv[self.lidartoep_subblock_idx_w].shape:", [len(self.params_lidar_inv[i]) for i in self.lidartoep_subblock_idx_w])
+        print("self.params_lidar[self.lidartoep_subblock_idx_w].shape", [len(self.params_lidar[i]) for i in self.lidartoep_subblock_idx_w])
+        print("self.params_cmd[self.cmdtoep_subblock_idx_w_1[:,1:2]].shape", self.params_cmd[self.cmdtoep_subblock_idx_w_1[:,1:2]].shape)
+        print("###")
+        print("self.params_cmd_inv[self.cmdtoep_subblock_idx_w].shape:", [len(self.params_cmd_inv[i]) for i in self.cmdtoep_subblock_idx_w])
+        print("self.params_cmd[self.cmdtoep_subblock_idx_w].shape", self.params_cmd[self.cmdtoep_subblock_idx_w].shape)
+        print("self.params_cmd[self.cmdtoep_subblock_idx_w_1[:,1:2]].shape", self.params_cmd[self.cmdtoep_subblock_idx_w_1[:,1:2]].shape)
+        print("###")
+        print("self.params_cmd_inv[self.cmdtoep_subblock_idx_w_1[:,1:2]].shape:", self.params_cmd_inv[self.cmdtoep_subblock_idx_w_1[:,1:2]].shape)
+        print("self.params_cmd[self.cmdtoep_subblock_idx_w_1[:,1:2]].shape", self.params_cmd[self.cmdtoep_subblock_idx_w_1[:,1:2]].shape)
+        """
+        for i in range(len(self.lidartoep_subblock_idx_w)):
+            self.params_lidar_inv[self.lidartoep_subblock_idx_w[i]] = np.reshape(-self.params_lidar[self.lidartoep_subblock_idx_w[i]]/self.params_cmd[self.cmdtoep_subblock_idx_w_1[i,1:2]], (-1), order='F')
+            self.params_cmd_inv[self.cmdtoep_subblock_idx_w[i]]   = np.reshape(-self.params_cmd[self.cmdtoep_subblock_idx_w[i]]/self.params_cmd[self.cmdtoep_subblock_idx_w_1[i,1:2]], (-1), order='F')
+            self.params_cmd_inv[self.cmdtoep_subblock_idx_w_1[i,1:2]] = 1/self.params_cmd[self.cmdtoep_subblock_idx_w_1[i,1:2]]
 
-    def __init__(self, goal_speed, first_lidar):
+    def __init__(self, goal_speed, first_lidar, rebuild=False):
         self.init_cfg()
         self.speed0 = goal_speed # =1
         self.init_lidar_idx()
@@ -133,7 +144,8 @@ class MyLinPerturb:
             return None
         self.init_states()
         self.init_training_data()
-        self.train_params()
+        if rebuild:
+            self.train_params()
         self.init_params()
 
     def __len__(self):
@@ -156,10 +168,12 @@ class MyLinPerturb:
             propagate_past_state_1time(step, self.cmdtoep, self.cmdtoep_subblock_idx_w)
             propagate_past_state_1time(step, self.cmdtoep, self.cmdtoep_subblock_idx_w)
             self.update_state_instant(step+1, 0, self.lidartoep, self.lidartoep_subblock_idx_w_1, self.lidars_fut[step,:], self.lidarrdy_subblock_idx)
-            self.update_state_instant(step+1, 1, self.cmdtoep, self.cmdtoep_subblock_idx_w_1, self.cmds_fut[step,:], None)
             lidar_step_size = f(self.lidars_fut[step,:])
-            self.lidars_fut[step+1,:] = self.lidars_fut[step,:] + lidar_step_size
+            future_lidar_target = self.lidars_fut[step,:] + lidar_step_size
+            self.lidars_fut[step+1,:] = future_lidar_target
             self.update_state_instant(step+1, 0, self.cmdtoep, self.cmdtoep_subblock_idx_w_1, [self.speed0, self.lidars_fut[step+1,:]], [i for i in range(0, self.lidar_extindex_size)])
+            cmdsinv_fut = [self.cmds_fut[step,0], future_lidar_target]
+            self.update_state_instant(step+1, 1, self.cmdtoep, self.cmdtoep_subblock_idx_w_1, self.cmdsinv_fut, None)
             predicted_angles = self.lidartoep@self.params_lidar_inv + self.cmdtoep@self.params_cmd_inv
             self.cmds_fut[step+1,1]   = np.mean(predicted_angles)
             self.update_state_instant(step+1, 0, self.cmdtoep, self.cmdtoep_subblock_idx_w_1, [self.speed0, self.cmds_fut[step+1,1]], None)
@@ -179,7 +193,7 @@ class MyLinPerturb:
 
     def control(self, cmd_speed, cmd_angle, lidar_meas):
         lidarrdy = lidar_meas[self.lidar_extindex_range] - self.lidar0
-        cmdrdy = cmd_angle - np.array([self.speed0,0])
+        cmdrdy = np.array([cmd_speed, cmd_angle]) - np.array([self.speed0,0])
         self.save_lidar_state(lidarrdy)
         self.save_cmd_state(cmdrdy)
         self.state_timestep(self.lidars_fut, 1)
@@ -220,16 +234,10 @@ class MyLinPerturb:
         datavecs = [0 for i in range(self.num_trajs)]
         for traj_idx in range(self.num_trajs):
             datavecs[traj_idx] = self.meas_flip[traj_idx, start_row:, :]
-            #print(f"datavecs[{traj_idx}] content: ", datavecs[traj_idx])
-            #print(f"datavecs[{traj_idx}] size: ", datavecs[traj_idx].shape)
 
         datavec = np.concatenate(datavecs, axis=0).reshape((-1), order='C')
         print("datavec shape: ", datavec.shape)
         return datavec
-        #print(f"start_row: {start_row}")
-        #for lidar_index_index in range(0, self.lidar_index_size):
-            #datavec_blocks[lidar_index_index] = self.meas[:,start_row:,lidari].contiguous().view(-1, 1)
-        #return torch.squeeze(torch.cat(datavec_blocks,dim=0))
 
     def train_params(self):
         print("Creating giant toeplitz of size")
@@ -243,9 +251,6 @@ class MyLinPerturb:
         print("rank:", torch.linalg.matrix_rank(toeplitz))
         s = torch.linalg.svdvals(toeplitz)
         print("svdvals[-20:]:",s[-20:])
-        #U,S,Vh = torch.linalg.svd(toeplitz)
-        #null = Vh[S < 1e-8]
-        #print("null.shape:", null.shape)
         print("Done creating giant toeplitz")
         AT = torch.transpose(toeplitz,0,1)
         print(f"Done transposing giant toeplitz. size: {AT.size()}")
@@ -263,51 +268,10 @@ class MyLinPerturb:
         df = pd.DataFrame(p_np)
         df.to_csv("parameters.csv",index=False)
 
-       
-    """
-    def __getitem__(self, idx):
-        #traj_idx  = idx# // self.subtrajs_per_traj
-        #start_row = idx % self.subtrajs_per_traj
-        
-        #t_start = start_row
-        #t_end   = start_row + self.past_win + 1
-        lidari=self.lidar_index_range[idx]-self.lidar_offset0
-        totalmatrices = [0 for i in range(0, self.num_trajs)]
-        start_row = self.past_win
-        for traj_idx in range(0, self.num_trajs):
-            cmdmatrix = self.ctl[traj_idx, start_row:, :]
-            lidarmatrix = torch.cat([self.meas[traj_idx, start_row-i:-i, lidari:lidari+1] for i in range(1,self.past_win+1)], dim=1)
-            if self.lidar_delta:
-                lidarmatrix_deltabefore = torch.cat([torch.cat([self.meas[traj_idx, start_row-i:-i, lidari+i_lidar_delta*self.lidar_step:lidari+i_lidar_delta*self.lidar_step+1] for i in range(1,self.past_win+1)], dim=1) for i_lidar_delta in range(-self.lidar_delta,0)], dim=1)
-                lidarmatrix_deltaafter  = torch.cat([torch.cat([self.meas[traj_idx, start_row-i:-i, lidari+i_lidar_delta*self.lidar_step:lidari+i_lidar_delta*self.lidar_step+1] for i in range(1,self.past_win+1)], dim=1) for i_lidar_delta in range(1, self.lidar_delta+1)], dim=1)
-                totalmatrices[traj_idx] = torch.cat([cmdmatrix,lidarmatrix_deltabefore,lidarmatrix,lidarmatrix_deltaafter], dim=1)
-            else:
-                totalmatrices[traj_idx] = torch.cat([cmdmatrix,lidarmatrix], dim=1)
-        totalmatrix = torch.cat(totalmatrices, dim=0)
-        return totalmatrix
-    """
 
 if __name__ == "__main__":
     print("data loading main")
     scripts_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../automatique/identif_dyn/scripts'))
     ctl, meas = load_trajectories(os.path.abspath(os.path.join(scripts_dir, conf.DATA_PATH)))
-    armax = MyLinPerturb(1,meas[0,0,:].numpy())
+    armax = MyLinPerturb(1,meas[0,0,:].numpy(), rebuild=False)
     print("done loading")
-    """
-    print("done loading, creating giant toeplitz of size")
-    toeplitz = armax.get_training_toep()
-    print("Done creating giant toeplitz")
-    AT = torch.transpose(toeplitz,0,1)
-    ATA = torch.matmul(AT, toeplitz)
-    ATA_lI = ATA + torch.diag(torch.ones(ATA.size(1)),0)*armax.my_lambda
-    print("Done creating ATA")
-    ATA_1 = torch.inverse(ATA_lI)
-    ATA_1AT = torch.matmul(ATA_1, AT)
-    print("Done calculating final MATRIX. Final size: ", ATA_1AT.size())
-    parameters = torch.matmul(ATA_1AT, armax.get_datavec())
-    print(f"Done calculating final parameters. Size of parameters: {parameters.size()}")
-    p_np = parameters.numpy()
-    df = pd.DataFrame(p_np)
-    df.to_csv("parameters.csv",index=False)
-    """
-    
