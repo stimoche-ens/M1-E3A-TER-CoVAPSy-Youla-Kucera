@@ -7,7 +7,7 @@
 
 import psutil
 import os
-from armax_jaune import MyLinPerturb
+from armax2_jaune import MyLinPerturb
 
 # --- Set high priority for the current process ---
 try:
@@ -47,6 +47,8 @@ maxSpeed = 28 #km/h
 angle = 0
 maxangle_degre = 16
 
+vitesse_m_s = angle_degre = 0
+
 # mise a zéro de la vitesse et de la direction
 driver.setSteeringAngle(angle)
 driver.setCruisingSpeed(speed)
@@ -59,6 +61,10 @@ PERT_ANG_MAX = 20
 PERT_ANG_PERIOD = 58
 PERT_VIT_MAX = 4
 PERT_VIT_PERIOD = 32
+
+for _ in range(5):
+    if driver.step() == -1:
+        break
 
 def set_vitesse_m_s(vitesse_m_s):
     speed = vitesse_m_s*3.6
@@ -80,12 +86,17 @@ def recule(): #sur la voiture réelle, il y a un stop puis un recul pendant 1s.
     driver.setCruisingSpeed(-1)  
 
 def get_tableau_lidar_mm():
+    donnees_lidar_brutes = lidar.getRangeImage()
     for i in range(360) :
-        if (donnees_lidar_brutes[-i]>0) and (donnees_lidar_brutes[-i]<20) :
+        if (donnees_lidar_brutes[-i]>0) and (donnees_lidar_brutes[-i]<11999) :
             tableau_lidar_mm[i-180] = 1000*donnees_lidar_brutes[-i]
+        elif ((donnees_lidar_brutes[-i]>11998)):
+            tableau_lidar_mm[i-180] = 12000
         else :
             tableau_lidar_mm[i-180] = 0
     return tableau_lidar_mm
+
+armax = MyLinPerturb(1,get_tableau_lidar_mm(), rebuild=False)
 
 # mode auto desactive
 modeAuto = False
@@ -93,7 +104,7 @@ print("cliquer sur la vue 3D pour commencer")
 print("a pour mode auto (pas de mode manuel sur TT02_jaune), n pour stop")
 
 
-armax = MyLinPerturb(1,get_tableau_lidar_mm, rebuild=False)
+
 
 while driver.step() != -1:
     while True:
@@ -114,7 +125,6 @@ while driver.step() != -1:
                 print("------------Mode Auto TT-02 jaune Activé-----------------")
     
     #acquisition des donnees du lidar
-    donnees_lidar_brutes = lidar.getRangeImage()
     tableau_lidar_mm = get_tableau_lidar_mm()
    
     if not modeAuto:
@@ -123,6 +133,7 @@ while driver.step() != -1:
         
     if modeAuto:
         vitesse_m_s, angle_degre = armax.control(vitesse_m_s, angle_degre, tableau_lidar_mm)
+        print(vitesse_m_s, angle_degre)
         set_direction_degre(angle_degre)
         set_vitesse_m_s(vitesse_m_s)
  

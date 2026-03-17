@@ -49,7 +49,6 @@ def pad_2Dseq_start(seq, pad_len, copy_init_value=False):
 class MyLinPerturb:
     def init_cfg(self):
         self.win_radius = 5
-        self.lidar_delta = 2 # number of adjacent lidar angles
         self.lidar_min = -90
         self.lidar_max = 90
         self.lidar_step = 10 # step between two lidar angles
@@ -60,34 +59,18 @@ class MyLinPerturb:
     def init_lidar_idx(self):
         self.lidar_index_range=np.array(range(self.lidar_offset0 + self.lidar_min, self.lidar_offset0 + self.lidar_max + self.lidar_step, self.lidar_step))
         self.lidar_index_size=len(self.lidar_index_range)
-        self.lidar_extindex_range=np.array(range(self.lidar_offset0 + self.lidar_min - self.lidar_delta*self.lidar_step, self.lidar_offset0 + self.lidar_max + self.lidar_delta*self.lidar_step + self.lidar_step, self.lidar_step))
-        self.lidar_extindex_size=len(self.lidar_extindex_range)
 
-
-    def init_states(self): #lidar_rdy = lidar[self.lidar_extindex_range] - self.lidar0
-        self.lidars_fut = np.zeros([self.win_radius+1,self.lidar_extindex_size])
+    def init_states(self):
+        self.lidars_fut = np.zeros([self.win_radius+1,self.lidar_index_size])
         self.cmds_fut   = np.zeros([self.win_radius+1,2])
-        self.lidartoep_block_height    = self.lidar_extindex_size#4*self.lidar_delta+1
-        self.lidartoep_subblock_width_min  = (self.lidar_delta+1)
-        self.lidartoep_subblock_width_max  = (2*self.lidar_delta+1)
-        self.lidartoep_subblock_idx_w  = [0 for i in self.lidar_extindex_range]
-        self.lidartoep_subblock_idx_w_1= [0 for i in self.lidar_extindex_range]
-        self.cmdtoep_subblock_idx_w  = np.array([[u+2*i*(self.win_radius+1) for u in range(0, 2*(self.win_radius+1))] for i in range(self.lidar_extindex_size)])
+        self.lidartoep_block_height    = self.lidar_index_size
+        self.lidartoep_subblock_idx_h  = np.array(range(self.lidar_index_size))
+        self.lidartoep_subblock_idx_w_1 = np.array(range(0, self.lidar_index_size))*self.win_radius
+        self.cmdtoep_subblock_idx_w  = np.array([[u+2*i*(self.win_radius+1) for u in range(0, 2*(self.win_radius+1))] for i in range(self.lidar_index_size)])
         self.cmdtoep_subblock_idx_w_1= self.cmdtoep_subblock_idx_w[:,::(self.win_radius+1)]
-        self.lidartoep_subblock_idx_h  = np.array([[i] for i in range(0, self.lidar_extindex_size)])
-        self.lidarrdy_subblock_idx     = [0 for i in self.lidar_extindex_range]
         block_offset = 0
-        for angle_i in range(0,self.lidar_extindex_size):
-            size = min([self.lidartoep_subblock_width_min+self.lidar_extindex_size-1-angle_i,self.lidartoep_subblock_width_min+angle_i,self.lidartoep_subblock_width_max])
-            self.lidarrdy_subblock_idx[angle_i] = np.array(range(0,size))+max([0,angle_i-self.lidar_delta])
-            self.lidartoep_subblock_idx_w[angle_i] = np.array(range(0,size*self.win_radius))+block_offset
-            self.lidartoep_subblock_idx_w_1[angle_i] = self.lidartoep_subblock_idx_w[angle_i][::self.win_radius]
-            block_offset += size*self.win_radius
-        #self.lidarrdy_subblock_idx = np.stack(self.lidarrdy_subblock_idx, axis=0)
-        #self.lidartoep_subblock_idx_w = np.stack(self.lidartoep_subblock_idx_w, axis=0)
-        #self.lidartoep_subblock_idx_w_1 = np.stack(self.lidartoep_subblock_idx_w_1, axis=0)
-        self.cmdtoep = np.zeros((self.lidartoep_block_height*(self.win_radius+1), self.lidar_extindex_size*2*(self.win_radius+1))) # all Toeplitz blocks
-        self.lidartoep_width = self.win_radius*(2*sum(range(self.lidar_delta+1, 2*self.lidar_delta+1)) + self.lidar_index_size*(2*self.lidar_delta+1))
+        self.cmdtoep = np.zeros((self.lidartoep_block_height*(self.win_radius+1), self.lidar_index_size*2*(self.win_radius+1))) # all Toeplitz blocks
+        self.lidartoep_width = self.win_radius*self.lidar_index_size
         self.lidartoep = np.zeros((self.lidartoep_block_height*(self.win_radius+1), self.lidartoep_width)) # all Toeplitz blocks
         #print("self.cmdtoep_subblock_idx_w.shape",self.cmdtoep_subblock_idx_w)
         #print("self.lidartoep_subblock_idx_w.shape",self.lidartoep_subblock_idx_w)
@@ -99,7 +82,7 @@ class MyLinPerturb:
         self.meas_flip = meas.numpy()
         self.meas_flip -= self.meas_flip[:,0:1,:]
         self.meas_flip =  np.clip(self.meas_flip, a_min=0, a_max=12000)
-        self.meas_flip = self.meas_flip[:,:,self.lidar_extindex_range-self.lidar_offset0]
+        self.meas_flip = self.meas_flip[:,:,self.lidar_index_range-self.lidar_offset0]
         self.ctl_flip  -= [self.speed0,0]
         self.ctl_flip = np.flip(self.ctl_flip, axis=1)
         self.meas_flip = np.flip(self.meas_flip, axis=1)
@@ -111,11 +94,11 @@ class MyLinPerturb:
         self.subtrajs_per_traj = self.traj_len - (self.win_radius+1) + 1 # (self.win_radius+1) because nth order implies a0+a1+....+an (n+1 samples)
 
     def init_params(self):
-        df = pd.read_csv('p_armax.csv')
+        df = pd.read_csv('p_armax2.csv')
         params = df.to_numpy()
         self.params_lidar = params[:self.lidartoep.shape[1]]
         self.params_cmd = params[self.lidartoep.shape[1]:]
-        self.params_lidar_inv = np.zeros([len(self.params_lidar)])
+        self.params_lidars_inv = np.zeros([self.lidar_index_size, len(self.params_lidar)])
         self.params_cmd_inv = np.zeros([len(self.params_cmd)])
         """
         print("self.params_lidar_inv[self.lidartoep_subblock_idx_w].shape:", [len(self.params_lidar_inv[i]) for i in self.lidartoep_subblock_idx_w])
@@ -129,8 +112,8 @@ class MyLinPerturb:
         print("self.params_cmd_inv[self.cmdtoep_subblock_idx_w_1[:,1:2]].shape:", self.params_cmd_inv[self.cmdtoep_subblock_idx_w_1[:,1:2]].shape)
         print("self.params_cmd[self.cmdtoep_subblock_idx_w_1[:,1:2]].shape", self.params_cmd[self.cmdtoep_subblock_idx_w_1[:,1:2]].shape)
         """
-        for i in range(len(self.lidartoep_subblock_idx_w)):
-            self.params_lidar_inv[self.lidartoep_subblock_idx_w[i]] = np.reshape(-self.params_lidar[self.lidartoep_subblock_idx_w[i]]/self.params_cmd[self.cmdtoep_subblock_idx_w_1[i,1:2]], (-1), order='F')
+        for i in range(self.lidar_index_size):
+            self.params_lidars_inv[i,:] = np.reshape(-self.params_lidar/self.params_cmd[self.cmdtoep_subblock_idx_w_1[i,1:2]], (-1), order='F')
             self.params_cmd_inv[self.cmdtoep_subblock_idx_w[i]]   = np.reshape(-self.params_cmd[self.cmdtoep_subblock_idx_w[i]]/self.params_cmd[self.cmdtoep_subblock_idx_w_1[i,1:2]], (-1), order='F')
             self.params_cmd_inv[self.cmdtoep_subblock_idx_w_1[i,1:2]] = 1/self.params_cmd[self.cmdtoep_subblock_idx_w_1[i,1:2]]
 
@@ -140,7 +123,7 @@ class MyLinPerturb:
         self.init_lidar_idx()
         self.lidar0 = self.filter_lidar(first_lidar)
         self.tick = 0
-        if (self.lidar_min - self.lidar_step*self.lidar_delta < -180) or (self.lidar_max + self.lidar_step*self.lidar_delta > 179):
+        if (self.lidar_min < -180) or (self.lidar_max > 179):
             print("Error: self.lidar_min and/or self.lidar_max, conjugated with self.lidar_step*self.lidar_delta go out of [-180, 179] bounds")
             return None
         self.init_states()
@@ -157,27 +140,34 @@ class MyLinPerturb:
             toep[self.lidartoep_subblock_idx_h[i]+self.lidartoep_block_height*(past_idx+1), toep_subblock_idx_w[i,1:]] = toep[self.lidartoep_subblock_idx_h[i]+self.lidartoep_block_height*past_idx, toep_subblock_idx_w[i,:-1]]
 
     def update_state_instant(self, state_idx, past_idx, toep, toep_subblock_idx_w_1, val_array, val_subblock_idx=None):
-        toep[self.lidartoep_subblock_idx_h+(self.lidartoep_block_height*state_idx), self.toep_subblock_idx_w_1+past_idx] = val_array[val_subblock_idx] if val_subblock_idx else val_array
+        for i in range(len(self.lidartoep_subblock_idx_h)):
+            toep[i+(self.lidartoep_block_height*state_idx), toep_subblock_idx_w_1[i]+past_idx] = val_array[val_subblock_idx[i]] if val_subblock_idx else val_array
 
     def state_timestep(self, toep, step_height):
         toep[:-step_height,:] = toep[step_height:,:]
         toep[-step_height:,:] = 0
 
-
     def plan_lidar_trajectory(self):
         f = np.vectorize(lambda x: -np.sign(min(abs(x), self.lidar_maxstep)))
         self.cmds_fut[:,0] = self.speed0
-        for step in range(0, win_radius):
-            propagate_past_state_1time(step, self.lidartoep, self.lidartoep_subblock_idx_w)
-            propagate_past_state_1time(step, self.cmdtoep, self.cmdtoep_subblock_idx_w)
-            self.update_state_instant(step+1, 0, self.lidartoep, self.lidartoep_subblock_idx_w_1, self.lidars_fut[step,:], self.lidarrdy_subblock_idx)
+        for step in range(0, self.win_radius):
+            #self.propagate_past_state_1time(step, self.lidartoep, self.lidartoep_subblock_idx_w)
+            self.lidartoep[self.lidartoep_subblock_idx_h+self.lidartoep_block_height*(step+1), 1:] = self.lidartoep[self.lidartoep_subblock_idx_h+self.lidartoep_block_height*step, :-1]
+            self.propagate_past_state_1time(step, self.cmdtoep, self.cmdtoep_subblock_idx_w)
+            #self.update_state_instant(step+1, 0, self.lidartoep, self.lidartoep_subblock_idx_w_1, self.lidars_fut[step,:], None)
+            for h in self.lidartoep_subblock_idx_h:
+                self.lidartoep[np.repeat(h,self.lidar_index_size)+(self.lidartoep_block_height*(step+1)), self.lidartoep_subblock_idx_w_1] = self.lidars_fut[step,:]
             self.update_state_instant(step+1, 1, self.cmdtoep, self.cmdtoep_subblock_idx_w_1, self.cmds_fut[step,:], None)
             lidar_step_size = f(self.lidars_fut[step,:])
             self.lidars_fut[step+1,:] = self.lidars_fut[step,:] + lidar_step_size
-            self.update_state_instant(step+1, 0, self.cmdtoep, self.cmdtoep_subblock_idx_w_1, np.reshape(np.vstack([np.array([self.speed0 for i in range(self.lidar_extindex_size)]), self.lidars_fut[step+1,:]]), (-1, 2), 'F'), [i for i in range(0, self.lidar_extindex_size)])
-            predicted_angles = self.lidartoep[(step+1)*self.lidartoep_block_height,:]@self.params_lidar_inv + self.cmdtoep[(step+1)*self.lidartoep_block_height,:]@self.params_cmd_inv
+            self.update_state_instant(step+1, 0, self.cmdtoep, self.cmdtoep_subblock_idx_w_1, np.reshape(np.vstack([np.array([self.speed0 for i in range(self.lidar_index_size)]), self.lidars_fut[step+1,:]]), (-1, 2), 'F'), [i for i in range(self.lidar_index_size)])
+            #print("vecdotting1:", self.lidartoep[(step+1)*self.lidartoep_block_height,:])
+            #print("vecdotting2:", self.params_lidars_inv)
+            predicted_angles = np.vecdot(self.lidartoep[(step+1)*self.lidartoep_block_height,:], self.params_lidars_inv) + self.cmdtoep[(step+1)*self.lidartoep_block_height,:]@self.params_cmd_inv
             self.cmds_fut[step+1,1]   = np.mean(predicted_angles)
             self.update_state_instant(step+1, 0, self.cmdtoep, self.cmdtoep_subblock_idx_w_1, [self.speed0, self.cmds_fut[step+1,1]], None)
+
+
 
         """
     def plan_lidar_trajectory(self):
@@ -196,23 +186,26 @@ class MyLinPerturb:
             predicted_angles = self.lidartoep@self.params_lidar_inv + self.cmdtoep@self.params_cmd_inv
             self.cmds_fut[step+1,1]   = np.mean(predicted_angles)
             self.update_state_instant(step+1, 0, self.cmdtoep, self.cmdtoep_subblock_idx_w_1, [self.speed0, self.cmds_fut[step+1,1]], None)
-        """
+       """
 
     def filter_lidar(self, lidar):
-        return np.array(lidar)[self.lidar_extindex_range] #[lidar[i] for i in self.lidar_extindex_range]
+        return np.array(lidar)[self.lidar_index_range] #[lidar[i] for i in self.lidar_index_range]
 
     def save_lidar_state(self, lidar_rdy):
-        self.propagate_past_state_1time(0, self.lidartoep, self.lidartoep_subblock_idx_w)
-        self.update_state_past(1, 1, self.lidartoep, self.lidartoep_subblock_idx_w_1, lidar_rdy, self.lidarrdy_subblock_idx)
+        #self.propagate_past_state_1time(0, self.lidartoep, self.lidartoep_subblock_idx_w)
+        self.lidartoep[self.lidartoep_subblock_idx_h+self.lidartoep_block_height*(0+1), 1:] = self.lidartoep[self.lidartoep_subblock_idx_h+self.lidartoep_block_height*0, :-1]
+        #self.update_state_instant(1, 1, self.lidartoep, self.lidartoep_subblock_idx_w_1, lidar_rdy, self.lidarrdy_subblock_idx)
+        for h in self.lidartoep_subblock_idx_h:
+            self.lidartoep[np.repeat(h,self.lidar_index_size)+(self.lidartoep_block_height*1), self.lidartoep_subblock_idx_w_1+1] = lidar_rdy
         self.state_timestep(self.lidartoep, self.lidartoep_block_height)
 
     def save_cmd_state(self, cmd_rdy):
         self.propagate_past_state_1time(0, self.cmdtoep, self.cmdtoep_subblock_idx_w)
-        self.update_state_past(1, 1, self.cmdtoep, self.cmdtoep_subblock_idx_w_1, cmd_rdy, None)
+        self.update_state_instant(1, 1, self.cmdtoep, self.cmdtoep_subblock_idx_w_1, cmd_rdy, None)
         self.state_timestep(self.lidartoep, self.lidartoep_block_height)
 
     def control(self, cmd_speed, cmd_angle, lidar_meas):
-        lidarrdy = np.array(lidar_meas)[self.lidar_extindex_range - self.lidar_offset0] - self.lidar0
+        lidarrdy = np.array(lidar_meas)[self.lidar_index_range - self.lidar_offset0] - self.lidar0
         cmdrdy = np.array([cmd_speed, cmd_angle]) - np.array([self.speed0,0])
         self.save_lidar_state(lidarrdy)
         self.save_cmd_state(cmdrdy)
@@ -227,17 +220,17 @@ class MyLinPerturb:
 
     def get_training_toep(self):
         start_row = self.win_radius
-        lidar_toeps = [np.zeros((self.lidar_extindex_size*self.subtrajs_per_traj,self.lidartoep_width)) for i in range(0, self.num_trajs)]
-        cmd_toeps = [np.zeros((self.lidar_extindex_size*self.subtrajs_per_traj,(self.win_radius+1)*2*self.lidar_extindex_size)) for i in range(0, self.num_trajs)]
+        lidar_toeps = [np.zeros((self.lidar_index_size*self.subtrajs_per_traj,self.lidartoep_width)) for i in range(0, self.num_trajs)]
+        cmd_toeps = [np.zeros((self.lidar_index_size*self.subtrajs_per_traj,(self.win_radius+1)*2*self.lidar_index_size)) for i in range(0, self.num_trajs)]
         currentstep_lidars = np.array((self.lidartoep_width))
-        cmdarrdy_subblock_idx = [[0,1] for i in range(self.lidar_extindex_size)]
+        cmdarrdy_subblock_idx = [[0,1] for i in range(self.lidar_index_size)]
         print(self.lidartoep_width)
         for traj_idx in range(self.num_trajs):
             for subtraj in range(0, self.subtrajs_per_traj):
-                currentstep_lidars = self.meas_flip[traj_idx,subtraj:start_row+subtraj,np.concatenate(self.lidarrdy_subblock_idx)].reshape((-1), order='F')
-                currentstep_cmds   = self.ctl_flip[traj_idx, subtraj:start_row+subtraj+1,   np.concatenate(cmdarrdy_subblock_idx)].reshape((-1), order='F')
-                for idx in range(len(self.lidartoep_subblock_idx_w)):
-                    lidar_toeps[traj_idx][self.lidartoep_subblock_idx_h[idx]+subtraj*self.lidartoep_block_height,self.lidartoep_subblock_idx_w[idx]] = currentstep_lidars[self.lidartoep_subblock_idx_w[idx]]
+                currentstep_lidars = self.meas_flip[traj_idx,subtraj:start_row+subtraj,   :].reshape((-1),                order='F')
+                currentstep_cmds   = self.ctl_flip[traj_idx, subtraj:start_row+subtraj+1, np.concatenate(cmdarrdy_subblock_idx)].reshape((-1), order='F')
+                lidar_toeps[traj_idx][self.lidartoep_subblock_idx_h+subtraj*self.lidartoep_block_height,:] = currentstep_lidars
+                for idx in range(len(self.cmdtoep_subblock_idx_w)):
                     cmd_toeps[traj_idx][self.lidartoep_subblock_idx_h[idx]+subtraj*self.lidartoep_block_height,self.cmdtoep_subblock_idx_w[idx]] = currentstep_cmds[self.cmdtoep_subblock_idx_w[idx]]
             print(f"traj {traj_idx+1}/{self.num_trajs} done")
         lidar_toep = np.concatenate(lidar_toeps, axis=0)
@@ -286,7 +279,7 @@ class MyLinPerturb:
         print(f"Done calculating final parameters. Size of parameters: {parameters.size()}")
         p_np = parameters.numpy()
         df = pd.DataFrame(p_np)
-        df.to_csv("p_armax.csv",index=False)
+        df.to_csv("p_armax2.csv",index=False)
 
 
 if __name__ == "__main__":
