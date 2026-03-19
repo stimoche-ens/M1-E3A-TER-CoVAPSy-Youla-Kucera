@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 import conf
 import argparse
-import mylib
+import libmy
 
 def export_onnx(pthfile, ModelClass, device="cpu", verbose=False):
     model = ModelClass()
@@ -101,7 +101,7 @@ def main():
         args = parser.parse_args()
     except SystemExit:
         sys.exit(1)
-    file_pool = mylib.get_file_pool(args.files, verbose=args.verbose)
+    file_pool = libmy.get_file_pool(args.files, verbose=args.verbose)
     if args.verbose:
         print(f"Pth file:    {args.pthfile}")
         print(f"Model class:    {args.model}")
@@ -109,7 +109,7 @@ def main():
         print(f"File Pool: {file_pool}")
     
     try:
-        ModelClass, _ = mylib.load_class_from_pool(args.model, file_pool, verbose=args.verbose)
+        ModelClass, _ = libmy.load_class_from_pool(args.model, file_pool, verbose=args.verbose)
     except ValueError as e:
         print(f"Error: {e}")
         sys.exit(1)

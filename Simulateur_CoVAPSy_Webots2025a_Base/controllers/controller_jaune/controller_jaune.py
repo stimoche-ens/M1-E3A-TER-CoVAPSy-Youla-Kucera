@@ -8,6 +8,7 @@
 import psutil
 import os
 from armax2_jaune import MyLinPerturb
+from yk_controller_jaune import YKControllerJaune
 
 # --- Set high priority for the current process ---
 try:
@@ -96,7 +97,9 @@ def get_tableau_lidar_mm():
             tableau_lidar_mm[i-180] = 0
     return tableau_lidar_mm
 
-armax = MyLinPerturb(1,get_tableau_lidar_mm(), rebuild=False)
+Q_WEIGHTS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../automatique/identif_dyn/scripts/out/MyQParameter_weights.pth'))
+armax = YKControllerJaune(1, get_tableau_lidar_mm(), Q_WEIGHTS_PATH)
+#armax = MyLinPerturb(1,get_tableau_lidar_mm(), rebuild=False)
 
 # mode auto desactive
 modeAuto = False

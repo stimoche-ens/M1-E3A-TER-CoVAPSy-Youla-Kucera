@@ -87,18 +87,25 @@ def my_train(dataset, ModelClass, scheduler_fn, optimizer_fn, criterion_fn, verb
     model = ModelClass(dataset_stats=dataset.stats)
     model = model.to(device)
     optimizer = optimizer_fn(model=model, lr=1e-4)
-    model, optimizer = ipex.optimize(model, optimizer=optimizer)
+
+    if isinstance(optimizer, AccumulatingOptimizer):
+        model, optimized_base = ipex.optimize(model, optimizer=optimizer.optimizer)
+        optimizer.optimizer = optimized_base
+    else:
+        model, optimizer = ipex.optimize(model, optimizer=optimizer)
+
     model = torch.compile(model, backend="ipex")
     scheduler = scheduler_fn(optimizer)
     criterion = criterion_fn()
     loader = DataLoader(dataset, batch_size=256, shuffle=True, num_workers=0, pin_memory=True)
-    output_fullname = str(conf.OUTPUT_DIR)+str(ModelClass.__name__)+"_weights.pth"
+    output_fullname = os.path.join(str(conf.OUTPUT_DIR), str(ModelClass.__name__)+"_weights.pth")
+
     if verbose:
         print("model name:", str(ModelClass.__name__))
         print("output full name:", str(output_fullname))
     model.train()
     prev_loss = 1
-    for epoch in range(50):
+    for epoch in range(1):
         loop = tqdm(loader, desc=f"Epoch {epoch+1}/50")
         total_loss = 0
         for traj_tuple in loop:
@@ -171,7 +178,7 @@ def main():
     print(f"Instantiating Dataset: {DatasetClass.__name__}")
     dataset = DatasetClass(ModelClass.IO_CONFIG)
     print(f"Starting training with model: {ModelClass.__name__}")
-    my_train(dataset, ModelClass, scheduler_ReduceLROnPlateau, optimizer_Adam, criterion_MSELoss, verbose=args.verbose)
+    my_train(dataset, ModelClass, scheduler_ReduceLROnPlateau, optimizer_Adam_accumulate, criterion_MSELoss, verbose=args.verbose)
 
 if __name__ == '__main__':
     main()

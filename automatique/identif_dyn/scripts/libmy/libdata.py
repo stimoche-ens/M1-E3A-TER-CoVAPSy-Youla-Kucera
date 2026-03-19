@@ -15,3 +15,4 @@ def norm_data_mean_stddev_len(dataset):
         dataset.raw_data[key] /= scale
         dataset.stats[key]["train_offset"] = mean
         dataset.stats[key]["train_scale"]  = scale
+

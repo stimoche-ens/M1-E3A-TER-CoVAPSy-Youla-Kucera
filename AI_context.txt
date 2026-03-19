@@ -22,15 +22,16 @@ file:///C:/Users/user/Nextcloud/Documents/ensps_work/2025-2026-M1-EEA/TER/travai
 file:///C:/Users/user/Nextcloud/Documents/ensps_work/2025-2026-M1-EEA/TER/travail/automatique/identif_dyn/scripts/pool/MyYKController.py
 #### END ATTACH 1
 
-#### BEGIN ATTACH 2
-file:///C:/Users/user/Nextcloud/Documents/ensps_work/2025-2026-M1-EEA/TER/travail/automatique/identif_dyn/scripts/pool/armax.py
-file:///C:/Users/user/Nextcloud/Documents/ensps_work/2025-2026-M1-EEA/TER/travail/Simulateur_CoVAPSy_Webots2025a_Base/controllers/controller_jaune/armax_jaune.py
-#### END ATTACH 2
-
 The goal of this current message is to initialize your context regarding my project. The vast majority of this project was coded and architected by AI.
 The final goal of this project is to design a Youla-Kucera controller, the pdf documentation of which is to be attached in a subsequent message.
+The StraightTrack database indeed is considered to be a longitudinally infinite perfect corridor, with a car accelerating to its step speed command, after the artificial padding. In the database, the car received a random uniform noise for both speed and angle, with differing periods of noise steps, depending on the trajectory (the ratio of speed and angle noise periods is engineered to be not integer, but a randomish rational, for many trajectories). The car never crashes into a wall.
 
 #####################################################################
+
+#### BEGIN ATTACH 2
+file:///C:/Users/user/Nextcloud/Documents/ensps_work/2025-2026-M1-EEA/TER/travail/Simulateur_CoVAPSy_Webots2025a_Base/controllers/controller_jaune/armax_jaune.py
+file:///C:/Users/user/Nextcloud/Documents/ensps_work/2025-2026-M1-EEA/TER/travail/Simulateur_CoVAPSy_Webots2025a_Base/controllers/controller_jaune/armax2_jaune.py
+#### END ATTACH 2
 
 #### BEGIN ATTACH 3
 file:///C:/Users/user/Nextcloud/Documents/ensps_work/2025-2026-M1-EEA/TER/bib/automatique/ch7_youla.pdf

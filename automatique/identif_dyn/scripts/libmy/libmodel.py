@@ -164,7 +164,8 @@ class NormAwareModule(nn.Module):
             kwargs['input_size'] = pack.total_width
         elif issubclass(LayerClass, nn.Linear):
             kwargs['in_features'] = pack.total_width
-        # ... add Conv logic here ...
+        elif issubclass(LayerClass, nn.modules.conv._ConvNd):
+            kwargs['in_channels'] = pack.total_width
             
         layer = LayerClass(**kwargs)
         self._register(layer, pack, mode="input")
