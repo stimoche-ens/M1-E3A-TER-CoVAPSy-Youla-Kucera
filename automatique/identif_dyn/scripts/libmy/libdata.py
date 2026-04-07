@@ -1,6 +1,15 @@
 #!/usr/bin/env python3
 
 import torch
+from torch.utils.data import random_split
+
+class DatasetSubsetProxy(Subset):
+    def __getattr__(self, name):
+        attr = getattr(self.dataset, name)
+        if hasattr(attr, '__func__'):
+            return types.MethodType(attr.__func__, self)
+
+        return attr
 
 def norm_data_mean_stddev_len(dataset):
     raw_data_keys = dataset.raw_data.keys()
@@ -16,3 +25,13 @@ def norm_data_mean_stddev_len(dataset):
         dataset.stats[key]["train_offset"] = mean
         dataset.stats[key]["train_scale"]  = scale
 
+
+def my_random_split(dataset, split_sizes):
+    base_splits = random_split(dataset, split_sizes)
+
+    proxy_splits = []
+    for split in base_splits:
+        proxy_split = DatasetSubsetProxy(split.dataset, split.indices)
+        proxy_splits.append(proxy_split)
+
+    return proxy_splits

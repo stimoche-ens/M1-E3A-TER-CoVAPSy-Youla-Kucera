@@ -9,6 +9,7 @@ class MyQParameter(lmodel.NormAwareModule):
     IO_CONFIG = {
         "past_window": 50,
         "future_window": 50,
+        "clip_angle": True,
         "inputs": [
             ("past", [conf.CMD_SPEED, conf.CMD_ANGLE, conf.RES_LIDAR])
         ],

@@ -6,7 +6,8 @@ import conf
  
 class StraightTrackResidual(StraightTrack):
     def __init__(self, io_config):
-        ctl, meas = load_trajectories(conf.DATA_PATH)
+        self.io_cfg = io_config
+        ctl, meas = load_trajectories(conf.DATA_PATH, clip_angle=self.io_cfg.get("clip_angle", False))
         meas = torch.clamp(meas, max=12000.0)
         speed_i = 0
         angle_i = 1
@@ -23,7 +24,6 @@ class StraightTrackResidual(StraightTrack):
             conf.CMD_ANGLE_Q: torch.zeros_like(ctl[:,:,angle_i:angle_i+1])
         }
         
-        self.io_cfg = io_config
         self.past_win = self.io_cfg["past_window"]
         self.fut_win  = self.io_cfg["future_window"]
         

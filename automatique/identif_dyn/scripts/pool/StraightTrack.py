@@ -8,7 +8,8 @@ import conf
 
 class StraightTrack(Dataset):
     def __init__(self, io_config):
-        ctl, meas = load_trajectories(conf.DATA_PATH)
+        self.io_cfg = io_config
+        ctl, meas = load_trajectories(conf.DATA_PATH, clip_angle=self.io_cfg.get("clip_angle", False))
         speed_i = 0
         angle_i = 1
         self.raw_data = {
@@ -17,7 +18,6 @@ class StraightTrack(Dataset):
             conf.MES_LIDAR: meas
         }
         
-        self.io_cfg = io_config
         self.past_win = self.io_cfg["past_window"]
         self.fut_win  = self.io_cfg["future_window"]
         
@@ -72,7 +72,7 @@ class StraightTrack(Dataset):
         return {"inputs": tuple(input_list), "outputs": tuple(output_list)}
 
 
-def load_trajectories(datafiles_path):
+def load_trajectories(datafiles_path, clip_angle=False):
     sequences = []
     targets = []
     mymax=0
@@ -81,6 +81,8 @@ def load_trajectories(datafiles_path):
         df = pd.read_csv(file, header=0)
         # Col 0: useless, 1-2: controls, 3-362: measures
         controls = df.iloc[:, 1:3].values.astype(np.float32)
+        if clip_angle:
+            controls[:, 1] = np.clip(controls[:, 1], -16.0, 16.0)
         measures = df.iloc[:, 3:363].values.astype(np.float32)
         curr_max = np.max(measures)
         mymax=max(mymax,curr_max)
@@ -107,7 +109,7 @@ def pad_2Dseq_start(seq, pad_len, copy_init_value=False):
 
 if __name__ == "__main__":
     print("data loading main")
-    controls, measures = load_trajectories(conf.DATA_PATH)
+    controls, measures = load_trajectories(conf.DATA_PATH, clip_angle=False)
 
 
 
