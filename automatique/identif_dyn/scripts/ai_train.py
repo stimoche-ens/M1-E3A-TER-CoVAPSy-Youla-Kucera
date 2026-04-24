@@ -36,6 +36,16 @@ def scheduler_ReduceLROnPlateau(optimizer):
         threshold_mode='rel' # Relative improvement
     )
 
+def scheduler_BloatSimple(optimizer):
+    return torch.optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer,
+        mode='min',
+        factor=0.999999,
+        patience=200000,
+        threshold=0.005,    
+        threshold_mode='rel' # Relative improvement
+    )
+
 
 class AggressiveScheduler:
     def __init__(self, optimizer, factor_up=10.0, factor_down=0.1, patience_up=2):
@@ -724,9 +734,10 @@ def main():
 
     print(f"Instantiating Dataset: {DatasetClass.__name__}")
     dataset = DatasetClass(ModelClass.IO_CONFIG)
-    train_data, val_data = libdata.my_random_split(dataset, [math.ceil(len(dataset)*2/3), math.floor(len(dataset)*1/3)])
+    train_data, val_data = libdata.my_train_val_split(dataset, 2/3)
     print(f"Starting training with model: {ModelClass.__name__}")
-    my_train(train_data, ModelClass, OptimalRK2Scheduler, optimizer_Bounded_Optimal_RK2_LARS, criterion_MSELoss, verbose=args.verbose)
+    #my_train(train_data, ModelClass, OptimalRK2Scheduler, optimizer_Bounded_Optimal_RK2_LARS, criterion_MSELoss, verbose=args.verbose)
+    my_train(train_data, ModelClass, scheduler_BloatSimple, optimizer_Adam, criterion_MSELoss, verbose=args.verbose)
 
 if __name__ == '__main__':
     main()

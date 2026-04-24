@@ -7,8 +7,8 @@ import libmy.libmodel as lmodel
 
 class MyLSTM(lmodel.NormAwareModule):
     IO_CONFIG = { # Single Source of Truth
-        "past_window": 50,
-        "future_window": 50,
+        "past_window": 20,
+        "future_window": 20,
         "inputs": [
             # mode (either "past" or "future") , keys (a list)
             ("past",   [conf.CMD_SPEED, conf.CMD_ANGLE, conf.MES_LIDAR]), # Index 0: Main Input

@@ -1,15 +1,10 @@
 #!/usr/bin/env python3
 
 import torch
+import copy
+import math
 from torch.utils.data import random_split
 
-class DatasetSubsetProxy(Subset):
-    def __getattr__(self, name):
-        attr = getattr(self.dataset, name)
-        if hasattr(attr, '__func__'):
-            return types.MethodType(attr.__func__, self)
-
-        return attr
 
 def norm_data_mean_stddev_len(dataset):
     raw_data_keys = dataset.raw_data.keys()
@@ -26,12 +21,33 @@ def norm_data_mean_stddev_len(dataset):
         dataset.stats[key]["train_scale"]  = scale
 
 
-def my_random_split(dataset, split_sizes):
-    base_splits = random_split(dataset, split_sizes)
 
-    proxy_splits = []
-    for split in base_splits:
-        proxy_split = DatasetSubsetProxy(split.dataset, split.indices)
-        proxy_splits.append(proxy_split)
 
-    return proxy_splits
+def my_train_val_split(dataset, split_fraction):
+    num_trajs = dataset.num_trajs
+    
+    # Calculate integer boundaries based on provided ratios or raw counts
+    split_idx = math.ceil(num_trajs * split_fraction)
+        
+    # Generate randomized permutation of trajectory indices
+    permuted_indices = torch.randperm(num_trajs)
+    train_indices = permuted_indices[:split_idx]
+    val_indices = permuted_indices[split_idx:]
+
+    splits = []
+    for indices in [train_indices, val_indices]:
+        # 1. Shallow copy bypasses __init__ and preserves shared dictionaries (stats, io_cfg)
+        split_obj = copy.copy(dataset)
+        
+        # 2. Re-bind the raw_data dictionary to trajectory-sliced tensor views
+        split_obj.raw_data = {}
+        for key, tensor in dataset.raw_data.items():
+            # Advanced indexing via list/tensor creates a contiguous copy of the specific trajectories
+            split_obj.raw_data[key] = tensor[indices]
+            
+        # 3. Update the internal state length mapping
+        split_obj.num_trajs = len(indices)
+        
+        splits.append(split_obj)
+        
+    return splits

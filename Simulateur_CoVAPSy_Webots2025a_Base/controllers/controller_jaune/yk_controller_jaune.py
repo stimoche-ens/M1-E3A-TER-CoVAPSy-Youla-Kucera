@@ -4,7 +4,7 @@ import os
 import sys
 import torch
 import numpy as np
-from armax2_jaune import MyLinPerturb
+from armax3_jaune import MyLinPerturb
 
 # Add the scripts directory to path so libmy and pool can be imported
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../automatique/identif_dyn/scripts')))

@@ -12,7 +12,7 @@ import conf
 #    import conf
 
 
-def load_trajectories(datafiles_path):
+def load_trajectories(datafiles_path, clip_angle=False):
     sequences = []
     targets = []
     mymax=0
@@ -22,6 +22,8 @@ def load_trajectories(datafiles_path):
         df = pd.read_csv(file, header=0)
         # Col 0: useless, 1-2: controls, 3-362: measures
         controls = df.iloc[:, 1:3].values.astype(np.float32)
+        if clip_angle:
+            controls[:, 1] = np.clip(controls[:, 1], -16.0, 16.0)
         measures = df.iloc[:, 3:363].values.astype(np.float32)
         curr_max = np.max(measures)
         mymax=max(mymax,curr_max)
@@ -94,7 +96,7 @@ class MyLinPerturb:
 
     def init_training_data(self):
         scripts_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../automatique/identif_dyn/scripts'))
-        ctl, meas = load_trajectories(os.path.abspath(os.path.join(scripts_dir, conf.DATA_PATH)))
+        ctl, meas = load_trajectories(os.path.abspath(os.path.join(scripts_dir, conf.DATA_PATH)), clip_angle=True)
         self.ctl_flip = ctl.numpy()
         self.meas_flip = meas.numpy()
         self.meas_flip -= self.meas_flip[:,0:1,:]
@@ -103,8 +105,8 @@ class MyLinPerturb:
         self.ctl_flip  -= [self.speed0,0]
         self.ctl_flip = np.flip(self.ctl_flip, axis=1)
         self.meas_flip = np.flip(self.meas_flip, axis=1)
-        self.ctl_flip = self.ctl_flip[:,::5,:]
-        self.meas_flip = self.meas_flip[:,::5,:]
+        #self.ctl_flip = self.ctl_flip[:,::5,:]
+        #self.meas_flip = self.meas_flip[:,::5,:]
         self.num_trajs = self.meas_flip.shape[0]
         self.traj_len = self.meas_flip.shape[1]
         print(f"traj_len: {self.traj_len}")
@@ -145,7 +147,9 @@ class MyLinPerturb:
             return None
         self.init_states()
         self.init_training_data()
-        if rebuild:
+        if rebuild or not os.path.exists('p_armax.csv'):
+            if not rebuild:
+                print("p_armax.csv not found, rebuilding params...")
             self.train_params()
         self.init_params()
 
@@ -292,6 +296,6 @@ class MyLinPerturb:
 if __name__ == "__main__":
     print("data loading main")
     scripts_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../automatique/identif_dyn/scripts'))
-    ctl, meas = load_trajectories(os.path.abspath(os.path.join(scripts_dir, conf.DATA_PATH)))
+    ctl, meas = load_trajectories(os.path.abspath(os.path.join(scripts_dir, conf.DATA_PATH)), clip_angle=True)
     armax = MyLinPerturb(1,meas[0,0,:].numpy(), rebuild=True)
     print("done loading")

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 DATA_PATH = "../webots_straight_track_2026.01.15/*.csv"
+DATA_UQYQ_PATH = "../../RobustCtl/u_q_y_q/uq_yq*.csv"
 POOL = "./pool"
 OUTPUT_DIR = "./out"
 TESTS_DIR = "./tests"

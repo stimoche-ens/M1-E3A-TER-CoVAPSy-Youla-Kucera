@@ -19,18 +19,27 @@ file:///C:/Users/user/Nextcloud/Documents/ensps_work/2025-2026-M1-EEA/TER/travai
 file:///C:/Users/user/Nextcloud/Documents/ensps_work/2025-2026-M1-EEA/TER/travail/automatique/identif_dyn/scripts/libmy/libpool.py
 file:///C:/Users/user/Nextcloud/Documents/ensps_work/2025-2026-M1-EEA/TER/travail/automatique/identif_dyn/scripts/pool/MyLSTM.py
 file:///C:/Users/user/Nextcloud/Documents/ensps_work/2025-2026-M1-EEA/TER/travail/automatique/identif_dyn/scripts/pool/StraightTrack.py
-file:///C:/Users/user/Nextcloud/Documents/ensps_work/2025-2026-M1-EEA/TER/travail/automatique/identif_dyn/scripts/pool/MyYKController.py
+file:///C:/Users/user/Nextcloud/Documents/ensps_work/2025-2026-M1-EEA/TER/travail/automatique/identif_dyn/scripts/pool/StraightTrackResidual.py
+file:///C:/Users/user/Nextcloud/Documents/ensps_work/2025-2026-M1-EEA/TER/travail/automatique/identif_dyn/scripts/pool/MyQParameter.py
 #### END ATTACH 1
 
 The goal of this current message is to initialize your context regarding my project. The vast majority of this project was coded and architected by AI.
 The final goal of this project is to design a Youla-Kucera controller, the pdf documentation of which is to be attached in a subsequent message.
 The StraightTrack database indeed is considered to be a longitudinally infinite perfect corridor, with a car accelerating to its step speed command, after the artificial padding. In the database, the car received a random uniform noise for both speed and angle, with differing periods of noise steps, depending on the trajectory (the ratio of speed and angle noise periods is engineered to be not integer, but a randomish rational, for many trajectories). The car never crashes into a wall.
 
+
+So considering that the armax clips the lidar data to 12000, the StraightTrack dataset has been cloned to StraightTrackResidual in order to make it output residuals instead of the absolute lidar values, and for making it all values to 12000 (in order to avoid discontinuities such as 99999999999999 jumping stright to 500 when the lidar ray goes from point to infinity to a wall).
+
+Other things also might have to be considered.
+
+
 #####################################################################
 
 #### BEGIN ATTACH 2
 file:///C:/Users/user/Nextcloud/Documents/ensps_work/2025-2026-M1-EEA/TER/travail/Simulateur_CoVAPSy_Webots2025a_Base/controllers/controller_jaune/armax_jaune.py
 file:///C:/Users/user/Nextcloud/Documents/ensps_work/2025-2026-M1-EEA/TER/travail/Simulateur_CoVAPSy_Webots2025a_Base/controllers/controller_jaune/armax2_jaune.py
+file:///C:/Users/user/Nextcloud/Documents/ensps_work/2025-2026-M1-EEA/TER/travail/Simulateur_CoVAPSy_Webots2025a_Base/controllers/controller_jaune/yk_controller_jaune.py
+file:///C:/Users/user/Nextcloud/Documents/ensps_work/2025-2026-M1-EEA/TER/travail/Simulateur_CoVAPSy_Webots2025a_Base/controllers/controller_jaune/controller_jaune.py
 #### END ATTACH 2
 
 #### BEGIN ATTACH 3
@@ -40,3 +49,48 @@ file:///C:/Users/user/Nextcloud/Documents/ensps_work/2025-2026-M1-EEA/TER/bib/au
 #### END ATTACH 3
 
 Attached to this message is the pdf documentation of the Youla-Kucera controller I desire.
+
+
+I want you to output in a concise diff format changes (with surrounding lines to give context, but without @fenwiofnewoi verbosity, only with + and -. No comments please) to apply to the current codebase (including new files to be created, if needed). The armax2 indeed has a p_armax2_jaune.csv file. Please make use of the current arch's modularity.
+
+
+
+
+
+
+
+
+
+###################################################################
+
+Currently, each trajectory is split into (N-window+1) subtrajectories, where N is the number of samples in the given traj and window is the observation window size.
+
+Since the linear model is trained to learn perturbations, the initial first `window` samples  of the trajectory depict a causal relationship between speed & angle control and lidar residuals, where the angle=0 command means no residuals whatsoever. However, at the nth subtrajectory, the angle=0 command still might produce time-varying lidar, since the cars isn't perfectly oriented forward. Therefore , the learned linearized dynamics would differ from sample to sample.
+
+Worse even : the speed of the car physically acts like a multiplicative constant for the speed of variation, whereas in the linear model  , it can only add things. Therefore, it's meaningless to train on arbitrary speed. It's better to organize training data in the following way :
+
+- make 1000 csvs each containing `window` samples , instead of 10 csvs each containing N samples
+
+- make sure that each csv has the same iniitial condition where the car faces forward
+
+- only the angle is perturbed
+
+- speed is constant
+
+when the parameters get identified, the controller can then multiply the entire result of predicted residuals by the speed command value. If training data uses speed=1, then in webots simulation, setting speed=2 shall make the controller understand that the predicted residuals have to be multiplied by 2.
+
+
+Regarding modeling of obstacles, the max lidar horizon could be reduced from 12000 to the max between lidar[-30] and lidar[30] at initial conditions (t=0) for each trajectory. Then when an obstacle appears in the horizon, the model would learn to apply a command proportional to the residual distance at a given angle.
+
+Or a circular shaped wall could be placed at a high enough distance for the model to never crash into it when being subjected to arbitrary control commands.
+
+
+Those have been some ideas about obstacle modeling.
+
+
+So now the goal is for you to assess the relevance of the attached pdf to the following problem :
+
+modeling of obstacles.
+
+
+
