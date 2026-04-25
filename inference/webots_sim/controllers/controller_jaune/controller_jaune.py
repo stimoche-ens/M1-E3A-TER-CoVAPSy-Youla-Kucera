@@ -8,6 +8,7 @@
 from vehicle import Driver
 from controller import Lidar
 import librobustNN
+import numpy as np
 
 driver = Driver()
 basicTimeStep = int(driver.getBasicTimeStep())
@@ -104,9 +105,10 @@ while driver.step() != -1:
         
     if modeAuto:
         vitesse_m_s, angle_degre = myrobustNN.control(vitesse_m_s, angle_degre, tableau_lidar_mm)
+        angle_degre=180/np.pi*angle_degre/2
         print(vitesse_m_s, angle_degre)
         set_direction_degre(angle_degre)
-        set_vitesse_m_s(vitesse_m_s)
+        set_vitesse_m_s(1)
  
     #########################################################
 

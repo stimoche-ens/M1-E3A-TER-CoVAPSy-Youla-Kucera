@@ -1,0 +1,46 @@
+{
+  "linmodel.params": "build/linmodel/generated/linmodel_params_2026_04_25__14_06_37.json",
+  "robustctl.controller": "build/robustctl/generated/robust_controller_2026_04_25__14_06_37.json",
+  "robustctl.webots_controller": "inference/webots_sim/controllers/controller_jaune/robust_controller.json",
+  "uqyq.active_glob": "data/uqyq/generated/2026_04_25__14_06_37/sim/uq_yq_*.csv",
+  "uqyq.real_glob": "data/uqyq/generated/2026_04_25__08_37_55/real/uq_yq_*.csv",
+  "nntrain.MyLSTM.weights": "build/nntrain/out/MyLSTM_weights_2026_04_25__14_06_37.pth",
+  "_meta": {
+    "linmodel.params": {
+      "kind": "linmodel_params",
+      "source_kind": "sim",
+      "updated_at": "2026-04-25T14:07:03"
+    },
+    "robustctl.controller": {
+      "kind": "robust_controller",
+      "params": "build/linmodel/generated/linmodel_params_2026_04_25__14_06_37.json",
+      "updated_at": "2026-04-25T14:15:57"
+    },
+    "robustctl.webots_controller": {
+      "kind": "webots_controller",
+      "source": "build/robustctl/generated/robust_controller_2026_04_25__14_06_37.json",
+      "updated_at": "2026-04-25T14:15:57"
+    },
+    "uqyq.active_glob": {
+      "kind": "uqyq_sim",
+      "input_dir": "data/Lidar_data_real",
+      "updated_at": "2026-04-25T14:22:06"
+    },
+    "uqyq.real_glob": {
+      "kind": "uqyq_real",
+      "input_dir": "data/Lidar_data_real",
+      "updated_at": "2026-04-25T08:49:05"
+    },
+    "nntrain.MyLSTM.weights": {
+      "kind": "nn_weights",
+      "dataset": "UQYQ",
+      "updated_at": "2026-04-25T14:28:15"
+    },
+    "uqyq.sim_glob": {
+      "kind": "uqyq_sim",
+      "input_dir": "data/Lidar_data_real",
+      "updated_at": "2026-04-25T14:22:06"
+    }
+  },
+  "uqyq.sim_glob": "data/uqyq/generated/2026_04_25__14_06_37/sim/uq_yq_*.csv"
+}

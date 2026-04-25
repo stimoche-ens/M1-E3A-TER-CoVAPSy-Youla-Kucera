@@ -78,11 +78,15 @@ def load_trajectories(datafiles_path):
     
     for file in glob.glob(datafiles_path):
         df = pd.read_csv(file, header=0)
-        # Col 0: useless, 1-2: controls, 3-362: measures
-        uq = df.iloc[1:, 0:3].values.astype(np.float32)
-        yq = df.iloc[1:, 3:5].values.astype(np.float32)
+        if df.shape[1] < 5:
+            raise ValueError(f"{file} must contain at least three u_q columns and two y_q columns")
+        # Robustctl writes all u_q columns first, followed by y_q_v and y_q_delta.
+        uq = df.iloc[1:, :-2].values.astype(np.float32)
+        yq = df.iloc[1:, -2:].values.astype(np.float32)
         sequences.append(torch.tensor(uq))
         targets.append(torch.tensor(yq))
+    if not sequences:
+        raise FileNotFoundError(f"no UQYQ files matched {datafiles_path}")
     seqs_torch = pad_2Dseq_start(sequences, 10, False)
     tarjs_torch = pad_2Dseq_start(targets, 10, True)
     return seqs_torch, tarjs_torch
@@ -100,4 +104,3 @@ def pad_2Dseq_start(seq, pad_len, copy_init_value=False):
     seq_out = [pad_2D_start(s,pad_len+max_seqlen - s.size(0), copy_init_value) for s in seq]
     output_tensor = torch.stack(seq_out, dim=0)
     return output_tensor
-

@@ -1,0 +1,132 @@
+
+
+./build/linmodel/ARX_obstacle_ramps_e.ipynb:        "jsondata_filename = os.path.join(DATA_FOLDER, \"data_\"+datetime.datetime.today().strftime('%Y_%m_%d__%H_%M_%S')+\".json\")\n",
+./build/linmodel/ARX_obstacle_ramps_e.ipynb:        "with open(jsondata_filename, \"w\") as f:\n",
+./build/linmodel/experiment.py:    from .data_prep import build_split_dataset, load_csv_files, split_files
+./build/linmodel/experiment.py:    from data_prep import build_split_dataset, load_csv_files, split_files
+./build/linmodel/experiment.py:    data_dir,
+./build/linmodel/experiment.py:    files = load_csv_files(data_dir, pattern=pattern, max_files=max_files)
+./build/linmodel/identify.py:    data_dir = args.data_dir or conf.DATASETS[args.dataset]
+./build/linmodel/identify.py:        data_dir=data_dir,
+./build/linmodel/README.md:./identify.py --dataset real --output generated/data_2026_04_23__15_16_51.json
+./build/linmodel/README.md:- `data_prep.py` for nominal-variation preprocessing and ARX regressors.
+./build/linmodel/__init__.py:from .data_prep import load_csv_files, split_files
+grep: ./build/linmodel/__pycache__/data_prep.cpython-313.pyc: binary file matches
+grep: ./build/linmodel/__pycache__/experiment.cpython-313.pyc: binary file matches
+grep: ./build/linmodel/__pycache__/__init__.cpython-313.pyc: binary file matches
+./build/nntrain/ai_train.py:    libdata.norm_data_mean_stddev_len(dataset)
+./build/nntrain/libmy/libdata.py:def norm_data_mean_stddev_len(dataset):
+./build/nntrain/libmy/libdata.py:    raw_data_keys = dataset.raw_data.keys()
+./build/nntrain/libmy/libdata.py:    for key in raw_data_keys:
+grep: ./build/nntrain/libmy/__pycache__/libdata.cpython-313.pyc: binary file matches
+./build/nntrain/pool/MyQParameter.py:        past_data_t = past_data.transpose(1, 2)
+./build/nntrain/pool/MyQParameter.py:        q_feat_t = self.q_parameter_conv(past_data_t)[..., :-4]
+grep: ./build/nntrain/pool/__pycache__/MyQParameter.cpython-313.pyc: binary file matches
+grep: ./build/nntrain/pool/__pycache__/MyQParameter.cpython-314.pyc: binary file matches
+grep: ./build/nntrain/pool/__pycache__/MyYKController.cpython-313.pyc: binary file matches
+grep: ./build/nntrain/__pycache__/data_loading.cpython-313.pyc: binary file matches
+./build/robustctl/generated/robust_controller.json:    "linear_parameters": "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/build/linmodel/data_2026_04_23__15_16_51.json",
+./conf/linmodel.py:LINPARAMS_FILENAME = "data_2026_04_23__15_16_51.json"
+./conf/linmodel.py:    "real": DATA_DIR / "Lidar_data_real",
+./conf/linmodel.py:    "sim": DATA_DIR / "Lidar_data_sim",
+./conf/robustctl.py:LINPARAMS_FILENAME = "data_2026_04_23__15_16_51.json"
+./conf/robustctl.py:INPUT_DATA_DIR = DATA_DIR / "Lidar_data_real"
+grep: ./conf/__pycache__/linmodel.cpython-313.pyc: binary file matches
+grep: ./conf/__pycache__/robustctl.cpython-313.pyc: binary file matches
+grep: ./conf/__pycache__/robustctl.cpython-314.pyc: binary file matches
+./data/webots_basetrack_const_pert_2025.11.12/chatgpt prompt.txt:#with open("data_0000_period01.csv", "r") as f:
+./data/webots_basetrack_const_pert_2025.11.12/chatgpt prompt.txt:    #arr = np.loadtxt("data_"+f'{amplitude_pert:04d}'+"_period"+f'{pert_period:02d}'+".csv", data_matrix, delimiter=",", header=header_string);
+./data/webots_basetrack_const_pert_2025.11.12/chatgpt prompt.txt:filenames = ["data_0000_period01.csv", "data_0002_period01.csv", "data_0002_period10.csv", "data_0002_period50.csv", "data_0005_period01.csv", "data_0010_period01.csv", "data_0010_period03.csv", "data_0010_period20.csv", "data_0015_period20.csv", "data_0020_period01.csv", "data_0020_period03.csv", "data_0020_period05.csv", "data_0020_period10.csv", "data_0020_period50.csv"]
+./data/webots_basetrack_const_pert_2025.11.12/chatgpt prompt.txt:        filename = f"data_{error:04.0f}_period{period:02.0f}.csv";
+./data/webots_basetrack_const_pert_2025.11.12/identif_dyn.py:#with open("data_0000_period01.csv", "r") as f:
+./data/webots_basetrack_const_pert_2025.11.12/identif_dyn.py:    #arr = np.loadtxt("data_"+f'{amplitude_pert:04d}'+"_period"+f'{pert_period:02d}'+".csv", data_matrix, delimiter=",", header=header_string);
+./data/webots_basetrack_const_pert_2025.11.12/identif_dyn.py:filenames = ["data_0000_period01.csv", "data_0002_period01.csv", "data_0002_period10.csv", "data_0002_period50.csv", "data_0005_period01.csv", "data_0010_period01.csv", "data_0010_period03.csv", "data_0010_period20.csv", "data_0015_period20.csv", "data_0020_period01.csv", "data_0020_period03.csv", "data_0020_period05.csv", "data_0020_period10.csv", "data_0020_period50.csv"]
+./data/webots_basetrack_const_pert_2025.11.12/identif_dyn.py:        filename = f"data_{error:04.0f}_period{period:02.0f}.csv";
+./data/webots_basetrack_const_pert_2025.11.12/testmock.py:base_filename = "mockdata_0000.csv"
+./data/webots_basetrack_const_pert_2025.11.12/testmock.py:noise_filename = "mockdata_0010.csv"
+./data/webots_basetrack_const_pert_2025.11.12/testmock_2025.12.18_15.35.py:base_filename = "mockdata_0000.csv"
+./data/webots_basetrack_const_pert_2025.11.12/testmock_2025.12.18_15.35.py:noise_filename = "mockdata_0010.csv"
+./data/webots_straight_track_2026.01.15/add_padding_v0_theta0_to_the_beginning_of_all_files.txt:filename="data_"+f'{vitesse_m_s:06.2f}'+"_"+f'{angle_degre:06.2f}'+".csv"
+./data/webots_straight_track_2026.01.15/add_padding_v0_theta0_to_the_beginning_of_all_files.txt:filename="data_"+f'{vitesse_m_s:06.2f}'+"_"+f'{angle_degre:06.2f}'+"_"+f'{angle_period:06.2f}'+".csv"
+./data/webots_straight_track_2026.01.15/controller_jaune.py:data_matrix = np.empty((0, len(header_list)), dtype=float)
+./data/webots_straight_track_2026.01.15/controller_jaune.py:        data_row_part = np.array([1, vitesse_m_s, angle_degre])
+./data/webots_straight_track_2026.01.15/controller_jaune.py:        data_row = np.append(data_row_part, tableau_lidar_mm)
+./data/webots_straight_track_2026.01.15/controller_jaune.py:        data_matrix = np.vstack([data_matrix, data_row])
+./data/webots_straight_track_2026.01.15/controller_jaune.py:            filename="data_"+f'{vitesse_m_s:06.2f}'+"_"+f'{angle_degre:06.2f}'+".csv"
+./data/webots_straight_track_2026.01.15/controller_jaune.py:            np.savetxt(filename, data_matrix, delimiter=",", header=header_string);
+./data/webots_straight_track_2026.01.15/controller_jaune2.py:data_matrix = np.empty((0, len(header_list)), dtype=float)
+./data/webots_straight_track_2026.01.15/controller_jaune2.py:        data_row_part = np.array([1, vitesse_m_s, angle_degre])
+./data/webots_straight_track_2026.01.15/controller_jaune2.py:        data_row = np.append(data_row_part, tableau_lidar_mm)
+./data/webots_straight_track_2026.01.15/controller_jaune2.py:        data_matrix = np.vstack([data_matrix, data_row])
+./data/webots_straight_track_2026.01.15/controller_jaune2.py:            filename="data_"+f'{vitesse_m_s:06.2f}'+"_"+f'{angle_degre:06.2f}'+"_"+f'{angle_period:06.2f}'+".csv"
+./data/webots_straight_track_2026.01.15/controller_jaune2.py:            np.savetxt(filename, data_matrix, delimiter=",", header=header_string);
+./data/webots_straight_track_2026.01.15/controller_jaune3.py:data_matrix = np.empty((0, len(header_list)), dtype=float)
+./data/webots_straight_track_2026.01.15/controller_jaune3.py:        data_row_part = np.array([1, vitesse_m_s, angle_degre])
+./data/webots_straight_track_2026.01.15/controller_jaune3.py:        data_row = np.append(data_row_part, tableau_lidar_mm)
+./data/webots_straight_track_2026.01.15/controller_jaune3.py:        data_matrix = np.vstack([data_matrix, data_row])
+./data/webots_straight_track_2026.01.15/controller_jaune3.py:            np.savetxt(filename, data_matrix, delimiter=",", header=header_string);
+./data/webots_straight_track_2026.01.15/testmock_2025.12.18_15.35.py:base_filename = "mockdata_0000.csv"
+./data/webots_straight_track_2026.01.15/testmock_2025.12.18_15.35.py:noise_filename = "mockdata_0010.csv"
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/arch/linux/net_serial.cpp:int raw_serial::waitfordata(size_t data_count, _u32 timeout, size_t * returned_size)
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/arch/linux/net_serial.cpp:        if (*returned_size >= data_count)
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/arch/linux/net_serial.cpp:            if (*returned_size >= data_count)
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/arch/linux/net_serial.h:    virtual int waitfordata(size_t data_count,_u32 timeout = -1, size_t * returned_size = NULL);
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/arch/macOS/net_serial.cpp:int raw_serial::waitfordata(size_t data_count, _u32 timeout, size_t * returned_size)
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/arch/macOS/net_serial.cpp:        if (*returned_size >= data_count)
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/arch/macOS/net_serial.cpp:            if (*returned_size >= data_count)
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/arch/macOS/net_serial.h:    virtual int waitfordata(size_t data_count,_u32 timeout = -1, size_t * returned_size = NULL);
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/arch/win32/net_serial.cpp:int raw_serial::waitfordata(size_t data_count, _u32 timeout, size_t * returned_size)
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/arch/win32/net_serial.cpp:        if (rxqueue_remaining >= data_count) {
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/arch/win32/net_serial.cpp:            if(stat.cbInQue >= data_count)
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/arch/win32/net_serial.h:    virtual int waitfordata(size_t data_count,_u32 timeout = -1, size_t * returned_size = NULL);
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/dataunpacker/unpacker/handler_capsules.cpp:    , _cached_last_data_timestamp_us(0)
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/dataunpacker/unpacker/handler_capsules.cpp:    _cached_last_data_timestamp_us = 0;
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/dataunpacker/unpacker/handler_capsules.cpp:                engine->publishHQNode(_cached_last_data_timestamp_us - _getSampleDelayOffsetInExpressMode(_cachedTimingDesc, pos * 2 + cpos), &hqNode);
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/dataunpacker/unpacker/handler_capsules.cpp:    _cached_last_data_timestamp_us = currentTS;
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/dataunpacker/unpacker/handler_capsules.cpp:    , _cached_last_data_timestamp_us(0)
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/dataunpacker/unpacker/handler_capsules.cpp:                engine->publishHQNode(_cached_last_data_timestamp_us - _getSampleDelayOffsetInUltraBoostMode(_cachedTimingDesc, pos * 3 + cpos), &hqNode);
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/dataunpacker/unpacker/handler_capsules.cpp:    _cached_last_data_timestamp_us = currentTS;
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/dataunpacker/unpacker/handler_capsules.cpp:    , _cached_last_data_timestamp_us(0)
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/dataunpacker/unpacker/handler_capsules.cpp:    _cached_last_data_timestamp_us = 0;
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/dataunpacker/unpacker/handler_capsules.cpp:    , _cached_last_data_timestamp_us(0)
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/dataunpacker/unpacker/handler_capsules.cpp:    _cached_last_data_timestamp_us = 0;
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/dataunpacker/unpacker/handler_capsules.h:    _u64             _cached_last_data_timestamp_us;
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/dataunpacker/unpacker/handler_capsules.h:    _u64             _cached_last_data_timestamp_us;
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/dataunpacker/unpacker/handler_capsules.h:    _u64             _cached_last_data_timestamp_us;
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/dataunpacker/unpacker/handler_capsules.h:    _u64             _cached_last_data_timestamp_us;
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/hal/abs_rxtx.h:    virtual int waitfordata(size_t data_count,_u32 timeout = -1, size_t * returned_size = NULL) = 0;
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/sl_lidar_driver.cpp:            _data_waiter.set(false);
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/sl_lidar_driver.cpp:            _data_queue.clear();
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/sl_lidar_driver.cpp:            _data_queue.push_back(*node);
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/sl_lidar_driver.cpp:            if (_data_queue.size() > _max_count) {
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/sl_lidar_driver.cpp:                _data_queue.pop_front();
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/sl_lidar_driver.cpp:            _data_waiter.set();
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/sl_lidar_driver.cpp:            if (_data_waiter.wait(timeout) == rp::hal::Event::EVENT_OK)
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/sl_lidar_driver.cpp:                    node[copiedCount++] = _data_queue.front();
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/sl_lidar_driver.cpp:                    _data_queue.pop_front();
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/sl_lidar_driver.cpp:        rp::hal::Event  _data_waiter;
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/sl_lidar_driver.cpp:        std::deque<T>   _data_queue;
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/sl_lidar_driver.cpp:            _data_waiter.set(false);
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/sl_lidar_driver.cpp:                    _data_waiter.set();
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/sl_lidar_driver.cpp:            if (_data_waiter.wait(timeout) == rp::hal::Event::EVENT_OK)
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/sl_lidar_driver.cpp:        rp::hal::Event  _data_waiter;
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/sl_lidar_driver.cpp:            _data_locker.lock();
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/sl_lidar_driver.cpp:            _data_locker.unlock();
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/sl_lidar_driver.cpp:                    _data_locker.lock();
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/sl_lidar_driver.cpp:                    _data_locker.unlock();
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/sl_lidar_driver.cpp:                _data_locker.lock();
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/sl_lidar_driver.cpp:                _data_locker.unlock();
+./inference/myYKRENs/YKREN/src/rplidar_ros/sdk/src/sl_lidar_driver.cpp:        rp::hal::Locker           _data_locker;
+./inference/myYKRENs/YKREN/src/YKREN/setup.py:    data_files=[
+./inference/webots_sim/controllers/controller_jaune/robust_controller.json:    "linear_parameters": "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/build/linmodel/data_2026_04_23__15_16_51.json",
+grep: ./inference/webots_sim/controllers/controller_jaune/__pycache__/armax_jaune.cpython-314.pyc: binary file matches
+./inference/webots_sim/controllers/my_controller_c/my_controller_c.c:  signed int data_lidar_mm_main[360];
+./inference/webots_sim/controllers/my_controller_c/my_controller_c.c:      data_lidar_mm_main[0]=1000*distance;
+./inference/webots_sim/controllers/my_controller_c/my_controller_c.c:      else data_lidar_mm_main[0] = 0;
+./inference/webots_sim/controllers/my_controller_c/my_controller_c.c:        data_lidar_mm_main[i]=1000*distance;
+./inference/webots_sim/controllers/my_controller_c/my_controller_c.c:      else data_lidar_mm_main[i] = 0;
+./inference/webots_sim/controllers/my_controller_c/my_controller_c.c:        data_lidar_mm_main[i]=1000*distance;
+./inference/webots_sim/controllers/my_controller_c/my_controller_c.c:      else data_lidar_mm_main[i] = 0;
+./inference/webots_sim/controllers/my_controller_c/my_controller_c.c:        /*  - le tableau data_lidar_mm_main     */
+./inference/webots_sim/controllers/my_controller_c/my_controller_c.c:        angle_degre = 0.02*(data_lidar_mm_main[60]-data_lidar_mm_main[300]); //distance à 60° - distance à -60°
+

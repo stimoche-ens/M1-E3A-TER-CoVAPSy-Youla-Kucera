@@ -1,41 +1,36 @@
 #!/usr/bin/env python3
 
+from pathlib import Path
+import sys
 
-import torch
-import torch.nn as nn
+import numpy as np
 
-from MyLSTM import MyLSTM
+_ROOT_FOR_IMPORTS = Path(__file__).resolve().parents[2]
+if str(_ROOT_FOR_IMPORTS) not in sys.path:
+    sys.path.insert(0, str(_ROOT_FOR_IMPORTS))
 
-# ==========================================
-# MAIN EXECUTION
-# ==========================================
+from lib.paths import BUILD_DIR
 
-# 2. Instantiate the "skeleton" of the model
-model = MyLSTM()
+if str(BUILD_DIR) not in sys.path:
+    sys.path.insert(0, str(BUILD_DIR))
 
-# 3. Load the weights from the hard drive
-# map_location='cpu' ensures it loads even if you don't have a GPU available
-#model.load_state_dict(torch.load("MyLSTM_weights.pth", map_location='cpu'))
-compiled_state_dict = torch.load("MyLSTM_weights.pth", map_location='cpu')
-clean_state_dict = {k.replace('_orig_mod.', ''): v for k, v in compiled_state_dict.items()}
-model.load_state_dict(clean_state_dict)
-print("Weights loaded successfully!")
+from robustctl.nn_runtime import NeuralYoulaLSTMPredictor
 
-# 4. CRITICAL: Switch to Evaluation Mode
-# This turns off dropout and batch normalization layers (if any)
-model.eval()
 
-print("Model loaded successfully. Ready for inference.")
+def main():
+    predictor = NeuralYoulaLSTMPredictor()
+    if not predictor.enabled:
+        raise FileNotFoundError("No active MyLSTM weights found in conf/current_artifacts.json")
 
-# --- RUNNING LIVE PREDICTIONS ---
-# Example: Stream in your 50 live past steps and 50 future planned steps
-# Ensure they are torch tensors of float32
-for i in range(0, 50):
-    live_past = torch.randn(1, 50, 362)    # [Batch=1, Time=50, Features=362]
-    planned_future = torch.randn(1, 50, 2) # [Batch=1, Time=50, Features=2]
+    y_q = np.zeros(2, dtype=float)
+    u_q = np.zeros(predictor.output_width, dtype=float)
+    for _ in range(predictor.cfg["past_window"]):
+        predictor.observe(y_q, u_q)
 
-    # Turn off gradient calculation to save memory and CPU
-    with torch.no_grad():
-        predicted_50_lidar = model(live_past, planned_future)
+    prediction = predictor.predict_uq(future_y_q=np.zeros(2, dtype=float))
+    print("Active MyLSTM weights:", predictor.weights_path)
+    print("Predicted future u_q[0]:", prediction)
 
-print("Predicted future LiDAR shape:", predicted_50_lidar.shape)
+
+if __name__ == "__main__":
+    main()

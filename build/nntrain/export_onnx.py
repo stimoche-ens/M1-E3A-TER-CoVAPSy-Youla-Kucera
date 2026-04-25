@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 import conf
 import argparse
-import libmy
+from libmy import libpool
 
 def export_onnx(pthfile, ModelClass, device="cpu", verbose=False):
     model = ModelClass()
@@ -65,13 +65,13 @@ def export_onnx(pthfile, ModelClass, device="cpu", verbose=False):
 def main():
     parser = argparse.ArgumentParser(
         description="Exporter of onnx",
-        epilog="Examples: ./export_onnx.py -v --pthfile=MyLSTM_weights.pth --model=MyLSTM"
+        epilog="Examples: ./export_onnx.py -v --model=MyLSTM"
     )
     parser.add_argument(
         '-p', '--pthfile',      # Aliases
         type=str,            # Formal type enforcement
         help='Saved parameters of pytorch model',
-        required=True,       # Critical constraint: fails if missing
+        default=None,
         metavar='FILE'       # Placeholder name in help text
     )
     parser.add_argument(
@@ -101,21 +101,22 @@ def main():
         args = parser.parse_args()
     except SystemExit:
         sys.exit(1)
-    file_pool = libmy.get_file_pool(args.files, verbose=args.verbose)
+    file_pool = libpool.get_file_pool(args.files, verbose=args.verbose)
+    pthfile = args.pthfile or conf.MYLSTM_WEIGHTS_PATH
     if args.verbose:
-        print(f"Pth file:    {args.pthfile}")
+        print(f"Pth file:    {pthfile}")
         print(f"Model class:    {args.model}")
         print(f"Target device:    {args.device}")
         print(f"File Pool: {file_pool}")
     
     try:
-        ModelClass, _ = libmy.load_class_from_pool(args.model, file_pool, verbose=args.verbose)
+        ModelClass, _ = libpool.load_class_from_pool(args.model, file_pool, verbose=args.verbose)
     except ValueError as e:
         print(f"Error: {e}")
         sys.exit(1)
 
     print(f"Starting exporting model parameters: {ModelClass.__name__}")
-    export_onnx(pthfile=args.pthfile, ModelClass=ModelClass, device=args.device, verbose=args.verbose)
+    export_onnx(pthfile=pthfile, ModelClass=ModelClass, device=args.device, verbose=args.verbose)
 
 if __name__ == '__main__':
     main()

@@ -1,0 +1,1 @@
+"""Central project configuration package."""
