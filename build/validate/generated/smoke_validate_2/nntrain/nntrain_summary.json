@@ -1,0 +1,18 @@
+{
+  "status": "ok",
+  "weights": "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/build/nntrain/out/MyLSTM_weights_2026_04_25__14_06_37.pth",
+  "uqyq_pattern": "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/data/uqyq/generated/2026_04_25__14_06_37/sim/uq_yq_*.csv",
+  "uqyq_files": [
+    "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/data/uqyq/generated/2026_04_25__14_06_37/sim/uq_yq_shift_rosbag2_2026_03_13-18_55_45.csv"
+  ],
+  "windows": 400,
+  "output_width": 15,
+  "first_step_rmse_mean": 30.957582625527866,
+  "all_horizon_rmse_mean": 22.180842456284896,
+  "metrics_csv": "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/build/validate/generated/smoke_validate_2/nntrain/nntrain_metrics.csv",
+  "figures": [
+    "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/build/validate/generated/smoke_validate_2/nntrain/nn_rmse_by_output.png",
+    "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/build/validate/generated/smoke_validate_2/nntrain/nn_horizon_rmse.png",
+    "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/build/validate/generated/smoke_validate_2/nntrain/nn_example_prediction.png"
+  ]
+}

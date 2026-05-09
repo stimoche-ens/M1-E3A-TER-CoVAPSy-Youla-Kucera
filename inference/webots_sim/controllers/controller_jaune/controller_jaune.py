@@ -102,13 +102,21 @@ while driver.step() != -1:
     if not modeAuto:
         set_direction_degre(0)
         set_vitesse_m_s(0)
-        
+    PERT_ANG_PERIOD = 5
+    PERT_ANG_AMPL = 5
+    PERT_VIT_PERIOD = 5
+    PERT_VIT_AMPL = 1
     if modeAuto:
         vitesse_m_s, angle_degre = myrobustNN.control(vitesse_m_s, angle_degre, tableau_lidar_mm)
-        angle_degre=180/np.pi*angle_degre/2
         print(vitesse_m_s, angle_degre)
-        set_direction_degre(angle_degre)
-        set_vitesse_m_s(1)
- 
+        if not k%PERT_ANG_PERIOD:
+            pert_ang = PERT_ANG_AMPL*2*(np.random.rand()-0.5)
+        if not k%PERT_VIT_PERIOD:
+            pert_vit = PERT_VIT_AMPL*2*(np.random.rand()-0.5)
+        k=(k+1)//(PERT_ANG_PERIOD*PERT_VIT_PERIOD)
+        
+        set_direction_degre(angle_degre+pert_ang)
+        set_vitesse_m_s(vitesse_m_s+pert_vit)
+        
     #########################################################
 

@@ -1,3 +1,4 @@
+import importlib.util
 import sys
 from pathlib import Path
 
@@ -8,15 +9,19 @@ BASE_DIR = Path(__file__).resolve().parent
 LOCAL_ARTIFACT_PATH = BASE_DIR / "robust_controller.json"
 
 
-def _find_project_root():
+def _load_project_paths():
     for parent in [BASE_DIR, *BASE_DIR.parents]:
-        if (parent / "build" / "robustctl").exists():
-            return parent
-    raise FileNotFoundError("could not locate project root containing build/robustctl")
+        path = parent / "conf" / "paths.py"
+        if path.exists():
+            spec = importlib.util.spec_from_file_location("_ter_conf_paths", path)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            return module
+    raise FileNotFoundError("could not locate conf/paths.py")
 
 
-PROJECT_ROOT = _find_project_root()
-ROBUSTCTL_PARENT = PROJECT_ROOT / "build"
+_paths = _load_project_paths()
+ROBUSTCTL_PARENT = _paths.BUILD_DIR
 
 if str(ROBUSTCTL_PARENT) not in sys.path:
     sys.path.insert(0, str(ROBUSTCTL_PARENT))

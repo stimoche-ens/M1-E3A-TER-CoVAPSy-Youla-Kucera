@@ -1,0 +1,16 @@
+{
+  "artifact": "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/build/robustctl/generated/robust_controller_2026_04_25__20_10_28.json",
+  "linear_parameters": "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/build/linmodel/generated/linmodel_params_2026_04_25__20_10_28.json",
+  "stable": true,
+  "K_shape": [
+    2,
+    5
+  ],
+  "K_norm_2": 20.740959448232704,
+  "open_peak": 0.8274225850524757,
+  "closed_peak": 0.396445184816513,
+  "figures": [
+    "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/build/validate/generated/2026_04_25__20_20_57/robustctl/robustctl_K_heatmap.png",
+    "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/build/validate/generated/2026_04_25__20_20_57/robustctl/robustctl_frequency_response.png"
+  ]
+}

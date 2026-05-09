@@ -1,0 +1,54 @@
+{
+  "run_id": "2026_04_25__20_08_01",
+  "linmodel": {
+    "artifact": "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/build/linmodel/generated/linmodel_params_2026_04_25__20_00_30.json",
+    "metrics_csv": "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/build/validate/generated/2026_04_25__20_08_01/linmodel/linmodel_metrics.csv",
+    "figures": [
+      "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/build/validate/generated/2026_04_25__20_08_01/linmodel/linmodel_rmse_heatmap.png",
+      "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/build/validate/generated/2026_04_25__20_08_01/linmodel/linmodel_r2_heatmap.png",
+      "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/build/validate/generated/2026_04_25__20_08_01/linmodel/linmodel_predictions.png",
+      "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/build/validate/generated/2026_04_25__20_08_01/linmodel/linmodel_a_coeffs.png",
+      "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/build/validate/generated/2026_04_25__20_08_01/linmodel/linmodel_b_v.png",
+      "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/build/validate/generated/2026_04_25__20_08_01/linmodel/linmodel_b_delta.png"
+    ],
+    "mean_rmse": 0.2578100849875867,
+    "mean_r2": 0.9384639559688287
+  },
+  "robustctl": {
+    "artifact": "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/build/robustctl/generated/robust_controller_2026_04_25__20_00_30.json",
+    "linear_parameters": "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/build/linmodel/generated/linmodel_params_2026_04_25__20_00_30.json",
+    "stable": true,
+    "K_shape": [
+      2,
+      3
+    ],
+    "K_norm_2": 6.352077228446117,
+    "open_peak": 0.44785957923996583,
+    "closed_peak": 0.3203934925992777,
+    "figures": [
+      "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/build/validate/generated/2026_04_25__20_08_01/robustctl/robustctl_K_heatmap.png",
+      "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/build/validate/generated/2026_04_25__20_08_01/robustctl/robustctl_frequency_response.png"
+    ]
+  },
+  "nntrain": {
+    "status": "ok",
+    "weights": "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/build/nntrain/out/MyLSTM_weights_2026_04_25__20_00_30.pth",
+    "uqyq_pattern": "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/data/uqyq/generated/2026_04_25__20_00_30/real/uq_yq_*.csv",
+    "uqyq_files": [
+      "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/data/uqyq/generated/2026_04_25__20_00_30/real/uq_yq_shift_rosbag2_2026_03_13-18_55_45.csv",
+      "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/data/uqyq/generated/2026_04_25__20_00_30/real/uq_yq_shift_rosbag2_2026_03_13-18_55_45_0.csv",
+      "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/data/uqyq/generated/2026_04_25__20_00_30/real/uq_yq_shift_rosbag2_2026_04_21-15_15_20.csv",
+      "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/data/uqyq/generated/2026_04_25__20_00_30/real/uq_yq_shift_rosbag2_2026_04_21-15_19_30.csv"
+    ],
+    "windows": 1600,
+    "output_width": 3,
+    "first_step_rmse_mean": 1.545991965328934,
+    "all_horizon_rmse_mean": 2.034308669370611,
+    "metrics_csv": "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/build/validate/generated/2026_04_25__20_08_01/nntrain/nntrain_metrics.csv",
+    "figures": [
+      "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/build/validate/generated/2026_04_25__20_08_01/nntrain/nn_rmse_by_output.png",
+      "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/build/validate/generated/2026_04_25__20_08_01/nntrain/nn_horizon_rmse.png",
+      "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/build/validate/generated/2026_04_25__20_08_01/nntrain/nn_example_prediction.png"
+    ]
+  }
+}

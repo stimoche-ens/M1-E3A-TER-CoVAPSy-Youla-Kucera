@@ -9,7 +9,7 @@ _ROOT_FOR_IMPORTS = Path(__file__).resolve().parents[2]
 if str(_ROOT_FOR_IMPORTS) not in sys.path:
     sys.path.insert(0, str(_ROOT_FOR_IMPORTS))
 
-from lib.paths import BUILD_DIR
+from conf.paths import BUILD_DIR
 
 if str(BUILD_DIR) not in sys.path:
     sys.path.insert(0, str(BUILD_DIR))

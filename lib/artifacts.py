@@ -1,13 +1,23 @@
 #!/usr/bin/env python3
 
 import datetime as _datetime
+import importlib.util
 import json
 from pathlib import Path
 
-from .paths import CONF_DIR, PROJECT_ROOT
+
+def _load_configured_paths():
+    path = Path(__file__).resolve().parent.parent / "conf" / "paths.py"
+    spec = importlib.util.spec_from_file_location("_ter_conf_paths", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+_paths = _load_configured_paths()
 
 RUN_ID_FORMAT = "%Y_%m_%d__%H_%M_%S"
-CURRENT_ARTIFACTS_PATH = CONF_DIR / "current_artifacts.json"
+CURRENT_ARTIFACTS_PATH = _paths.CONF_DIR / "current_artifacts.json"
 
 
 def make_run_id(now=None):
@@ -19,13 +29,13 @@ def project_path(path):
     path = Path(path)
     if path.is_absolute():
         return path
-    return PROJECT_ROOT / path
+    return _paths.PROJECT_ROOT / path
 
 
 def project_str(path):
     path = Path(path)
     try:
-        return str(path.resolve().relative_to(PROJECT_ROOT.resolve()))
+        return str(path.resolve().relative_to(_paths.PROJECT_ROOT.resolve()))
     except ValueError:
         return str(path)
 

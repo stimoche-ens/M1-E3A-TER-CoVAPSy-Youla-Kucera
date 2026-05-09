@@ -62,7 +62,7 @@ def required_input_columns(bank):
 
 def extract_eps(table, bank):
     return np.column_stack([
-        bank.d_nom - table[canonical_lidar_column(angle)]
+        table[canonical_lidar_column(angle)] - bank.d_nom
         for angle in bank.angles
     ])
 
@@ -112,10 +112,10 @@ class YoulaSignalIdentifier:
     def identify_table(self, table):
         eps = extract_eps(table, self.bank)
         reference = extract_reference(table, self.bank)
-        u_k0 = eps @ self.K0.T
+        u_k0 = - eps @ self.K0.T
         y_k = reference - u_k0
         y_b = self.closed_loop.simulate(y_k)
-        u_k = y_b + eps
+        u_k = y_b - eps
         return np.column_stack([u_k, y_k])
 
     def identify_file(self, path, output_dir, prefix=conf.UQYQ_PREFIX):

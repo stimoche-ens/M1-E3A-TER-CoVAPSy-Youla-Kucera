@@ -1,0 +1,14 @@
+{
+  "artifact": "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/build/linmodel/generated/linmodel_params_2026_04_25__14_06_37.json",
+  "metrics_csv": "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/build/validate/generated/smoke_images/linmodel/linmodel_metrics.csv",
+  "figures": [
+    "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/build/validate/generated/smoke_images/linmodel/linmodel_rmse_heatmap.png",
+    "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/build/validate/generated/smoke_images/linmodel/linmodel_r2_heatmap.png",
+    "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/build/validate/generated/smoke_images/linmodel/linmodel_predictions.png",
+    "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/build/validate/generated/smoke_images/linmodel/linmodel_a_coeffs.png",
+    "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/build/validate/generated/smoke_images/linmodel/linmodel_b_v.png",
+    "/mnt/c/Users/user/Nextcloud/sergeyonserver/tosort/ensps_work/2025-2026-M1-EEA/TER/travail/build/validate/generated/smoke_images/linmodel/linmodel_b_delta.png"
+  ],
+  "mean_rmse": 1.4663083652863804,
+  "mean_r2": -13.594897116776021
+}

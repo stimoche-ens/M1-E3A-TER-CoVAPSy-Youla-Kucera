@@ -232,6 +232,7 @@ def synthesize_static_k0(
             best_K = K
 
     if best_K is None:
+        print("Warning: best_K is None")
         return np.zeros_like(seed)
 
     return best_K
