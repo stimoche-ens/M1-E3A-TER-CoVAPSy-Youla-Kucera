@@ -13,18 +13,6 @@ try:
         read_numeric_columns,
         required_input_columns,
     )
-    from .kcontroller import (
-        closed_loop_right_division,
-        is_stable,
-        synthesize_static_k0,
-    )
-    from .linear_model import (
-        ModelBank,
-        StateSpace,
-        angle_label,
-        build_lidar_system,
-        load_model_bank,
-    )
 except ImportError:
     import conf
     from io_pipeline import (
@@ -34,18 +22,6 @@ except ImportError:
         output_columns,
         read_numeric_columns,
         required_input_columns,
-    )
-    from kcontroller import (
-        closed_loop_right_division,
-        is_stable,
-        synthesize_static_k0,
-    )
-    from linear_model import (
-        ModelBank,
-        StateSpace,
-        angle_label,
-        build_lidar_system,
-        load_model_bank,
     )
 
 
@@ -65,6 +41,19 @@ def parse_args():
     parser.add_argument("--frequency-samples", type=int, default=conf.DEFAULT_FREQUENCY_SAMPLES)
     parser.add_argument("--k0-scale", type=float, default=conf.DEFAULT_K0_SCALE)
     parser.add_argument("--scale-candidates", type=int, default=conf.DEFAULT_SCALE_CANDIDATES)
+    parser.add_argument("--hinf-control-weight", type=float, default=conf.DEFAULT_HINF_CONTROL_WEIGHT)
+    parser.add_argument("--hinf-gain-regularization", type=float, default=conf.DEFAULT_HINF_GAIN_REGULARIZATION)
+    parser.add_argument("--hinf-max-iterations", type=int, default=conf.DEFAULT_HINF_MAX_ITERATIONS)
+    parser.add_argument(
+        "--hinf-max-optimized-variables",
+        type=int,
+        default=conf.DEFAULT_HINF_MAX_OPTIMIZED_VARIABLES,
+    )
+    parser.add_argument(
+        "--hinf-max-stability-checks",
+        type=int,
+        default=conf.DEFAULT_HINF_MAX_STABILITY_CHECKS,
+    )
     parser.add_argument("--max-files", type=int, default=None)
     return parser.parse_args()
 
@@ -92,6 +81,11 @@ def main():
         frequency_samples=args.frequency_samples,
         k0_scale=args.k0_scale,
         scale_candidates=args.scale_candidates,
+        hinf_control_weight=args.hinf_control_weight,
+        hinf_gain_regularization=args.hinf_gain_regularization,
+        hinf_max_iterations=args.hinf_max_iterations,
+        hinf_max_optimized_variables=args.hinf_max_optimized_variables,
+        hinf_max_stability_checks=args.hinf_max_stability_checks,
         max_files=args.max_files,
     )
 

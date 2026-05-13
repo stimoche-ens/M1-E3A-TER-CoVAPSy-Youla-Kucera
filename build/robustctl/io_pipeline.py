@@ -9,11 +9,11 @@ from lib.signal_schema import canonical_lidar_column, normalize_columns
 
 try:
     from . import conf
-    from .kcontroller import closed_loop_right_division, synthesize_static_k0
+    from .kcontroller import closed_loop_right_division, synthesize_static_hinf_k0
     from .linear_model import build_lidar_system, load_model_bank, angle_label
 except ImportError:
     import conf
-    from kcontroller import closed_loop_right_division, synthesize_static_k0
+    from kcontroller import closed_loop_right_division, synthesize_static_hinf_k0
     from linear_model import build_lidar_system, load_model_bank, angle_label
 
 CANONICAL_SPEED_COL = "speed_km_h"
@@ -102,10 +102,26 @@ class YoulaSignalIdentifier:
         frequency_samples=conf.DEFAULT_FREQUENCY_SAMPLES,
         k0_scale=conf.DEFAULT_K0_SCALE,
         scale_candidates=conf.DEFAULT_SCALE_CANDIDATES,
+        hinf_control_weight=conf.DEFAULT_HINF_CONTROL_WEIGHT,
+        hinf_gain_regularization=conf.DEFAULT_HINF_GAIN_REGULARIZATION,
+        hinf_max_iterations=conf.DEFAULT_HINF_MAX_ITERATIONS,
+        hinf_max_optimized_variables=conf.DEFAULT_HINF_MAX_OPTIMIZED_VARIABLES,
+        hinf_max_stability_checks=conf.DEFAULT_HINF_MAX_STABILITY_CHECKS,
     ):
         bank = load_model_bank(params_path or conf.LINPARAMS_PATH, d_nom=d_nom)
         H = build_lidar_system(bank)
-        K0 = synthesize_static_k0(bank, H, frequency_samples, k0_scale, scale_candidates)
+        K0 = synthesize_static_hinf_k0(
+            bank,
+            H,
+            frequency_samples,
+            k0_scale,
+            scale_candidates,
+            hinf_control_weight,
+            hinf_gain_regularization,
+            hinf_max_iterations,
+            hinf_max_optimized_variables,
+            hinf_max_stability_checks,
+        )
         closed_loop = closed_loop_right_division(H, K0)
         return cls(bank, K0, closed_loop)
 

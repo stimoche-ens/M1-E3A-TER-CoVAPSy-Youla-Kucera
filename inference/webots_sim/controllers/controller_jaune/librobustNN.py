@@ -71,6 +71,8 @@ class robustNN():
     def control(self, vitesse_m_s, angle_degre, tableau_lidar_mm):
         linear_command = self.controller.command_from_lidar(tableau_lidar_mm)
 
+        return [linear_command.speed_m_s, linear_command.steering_angle_deg]
+
         if self.nn_predictor is None:
             return linear_command.speed_m_s, linear_command.steering_angle_deg
 

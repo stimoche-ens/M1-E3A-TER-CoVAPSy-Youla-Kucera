@@ -127,7 +127,8 @@ class StaticOutputFeedbackController:
         eps = np.asarray(eps, dtype=float)
         correction = self.correction_from_eps(eps)
         raw_command = np.array([self.v_nom, self.delta_nom]) + correction
-        command = self.limits.clip(raw_command)
+        #command = self.limits.clip(raw_command)
+        command = raw_command
         return ControlCommand(
             speed_m_s=float(command[0]),
             steering_angle_deg=float(command[1]),
@@ -188,6 +189,25 @@ def closed_loop_peak_from_responses(responses, K):
     return float(np.max(np.linalg.norm(closed_loop, ord=2, axis=(1, 2))))
 
 
+def static_hinf_peak_from_responses(responses, K, control_weight=1e-2):
+    K = np.asarray(K, dtype=float)
+    responses = np.asarray(responses)
+    identity = np.eye(K.shape[0], dtype=responses.dtype)
+    matrices = identity[None, :, :] + np.einsum("ij,sjk->sik", K, responses)
+    try:
+        inverse = np.linalg.inv(matrices)
+    except np.linalg.LinAlgError:
+        return np.inf
+
+    eps_response = np.einsum("sij,sjk->sik", responses, inverse)
+    control_response = np.einsum("ij,sjk->sik", K, eps_response)
+    performance = np.concatenate([
+        eps_response,
+        np.sqrt(float(control_weight)) * control_response,
+    ], axis=1)
+    return float(np.max(np.linalg.norm(performance, ord=2, axis=(1, 2))))
+
+
 def candidate_scales(max_candidates=None):
     coarse = np.geomspace(1e-3, 50.0, 120)
     dense = np.linspace(0.05, 8.0, 160)
@@ -238,18 +258,201 @@ def synthesize_static_k0(
     return best_K
 
 
+def _closed_loop_spectral_radius(H, K):
+    try:
+        closed_loop = closed_loop_right_division(H, K)
+    except np.linalg.LinAlgError:
+        return np.inf
+
+    if closed_loop.n_states == 0:
+        return 0.0
+    return float(np.max(np.abs(np.linalg.eigvals(closed_loop.A))))
+
+
+def _static_hinf_frequency_score(responses, K, control_weight, gain_regularization):
+    gain_norm = float(np.linalg.norm(K, 2))
+    peak = static_hinf_peak_from_responses(responses, K, control_weight)
+    if not np.isfinite(peak):
+        return 1e12 + gain_norm
+    return peak + float(gain_regularization) * gain_norm
+
+
+def _static_hinf_score(
+    H,
+    responses,
+    K,
+    control_weight,
+    gain_regularization,
+    stability_limit,
+):
+    K = np.asarray(K, dtype=float)
+    radius = _closed_loop_spectral_radius(H, K)
+    gain_norm = float(np.linalg.norm(K, 2))
+
+    if not np.isfinite(radius):
+        return 1e12 + gain_norm
+    if radius >= stability_limit:
+        margin_violation = radius - stability_limit
+        return 1e9 + 1e9 * margin_violation * margin_violation + gain_norm
+
+    return _static_hinf_frequency_score(
+        responses,
+        K,
+        control_weight,
+        gain_regularization,
+    )
+
+
+def synthesize_static_hinf_k0(
+    bank,
+    H,
+    samples=conf.DEFAULT_FREQUENCY_SAMPLES,
+    forced_scale=None,
+    scale_candidates=conf.DEFAULT_SCALE_CANDIDATES,
+    control_weight=conf.DEFAULT_HINF_CONTROL_WEIGHT,
+    gain_regularization=conf.DEFAULT_HINF_GAIN_REGULARIZATION,
+    max_iterations=conf.DEFAULT_HINF_MAX_ITERATIONS,
+    max_optimized_variables=conf.DEFAULT_HINF_MAX_OPTIMIZED_VARIABLES,
+    max_stability_checks=conf.DEFAULT_HINF_MAX_STABILITY_CHECKS,
+):
+    """Synthesize a drop-in static K0 by sampled H-infinity optimization.
+
+    Classical hinfsyn returns a dynamic controller. The runtime here accepts a
+    static matrix K only, so this routine solves the compatible problem: find a
+    static output-feedback K that minimizes the sampled H-infinity peak of
+    [eps; sqrt(control_weight) * u] over the existing closed-loop convention.
+    """
+    responses = frequency_response_grid(bank, samples)
+    dc_seed = np.linalg.pinv(bank.transfer_matrix(0.0).real)
+    if forced_scale is not None:
+        return float(forced_scale) * dc_seed
+
+    zero = np.zeros_like(dc_seed)
+    scale_values = candidate_scales(scale_candidates)
+
+    candidates = [zero]
+    candidates.extend(scale * dc_seed for scale in scale_values)
+    if dc_seed.size <= int(max_optimized_variables):
+        candidates.append(
+            synthesize_static_k0(
+                bank,
+                H,
+                samples=samples,
+                forced_scale=None,
+                scale_candidates=scale_candidates,
+            )
+        )
+
+    ranked_candidates = [
+        (
+            _static_hinf_frequency_score(
+                responses,
+                K,
+                control_weight,
+                gain_regularization,
+            ),
+            K,
+        )
+        for K in candidates
+    ]
+    ranked_candidates.sort(key=lambda item: item[0])
+    stability_check_count = min(
+        max(1, int(max_stability_checks)),
+        max(1, 2000 // max(1, H.n_states)),
+    )
+    checked_candidates = [
+        K for _, K in ranked_candidates[:stability_check_count]
+    ]
+    best_K = min(
+        checked_candidates,
+        key=lambda K: _static_hinf_score(
+            H,
+            responses,
+            K,
+            control_weight,
+            gain_regularization,
+            stability_limit=1.0,
+        ),
+    )
+    best_score = _static_hinf_score(
+        H,
+        responses,
+        best_K,
+        control_weight,
+        gain_regularization,
+        stability_limit=1.0,
+    )
+
+    if best_K.size > int(max_optimized_variables) or int(max_iterations) <= 0:
+        return best_K
+
+    try:
+        from scipy.optimize import minimize
+    except ImportError:
+        return best_K
+
+    shape = best_K.shape
+
+    def objective(flat_K):
+        K = np.asarray(flat_K, dtype=float).reshape(shape)
+        return _static_hinf_score(
+            H,
+            responses,
+            K,
+            control_weight,
+            gain_regularization,
+            stability_limit=1.0,
+        )
+
+    result = minimize(
+        objective,
+        best_K.reshape(-1),
+        method="Powell",
+        options={
+            "maxiter": int(max_iterations),
+            "xtol": 1e-6,
+            "ftol": 1e-6,
+            "disp": False,
+        },
+    )
+
+    if result.success or np.isfinite(result.fun):
+        candidate = np.asarray(result.x, dtype=float).reshape(shape)
+        candidate_score = objective(candidate.reshape(-1))
+        if candidate_score < best_score:
+            best_K = candidate
+
+    return best_K
+
+
 def build_controller_artifact(
     params_path=None,
     d_nom=None,
     frequency_samples=conf.DEFAULT_FREQUENCY_SAMPLES,
     k0_scale=conf.DEFAULT_K0_SCALE,
     scale_candidates=conf.DEFAULT_SCALE_CANDIDATES,
+    hinf_control_weight=conf.DEFAULT_HINF_CONTROL_WEIGHT,
+    hinf_gain_regularization=conf.DEFAULT_HINF_GAIN_REGULARIZATION,
+    hinf_max_iterations=conf.DEFAULT_HINF_MAX_ITERATIONS,
+    hinf_max_optimized_variables=conf.DEFAULT_HINF_MAX_OPTIMIZED_VARIABLES,
+    hinf_max_stability_checks=conf.DEFAULT_HINF_MAX_STABILITY_CHECKS,
     limits=None,
 ):
     params_path = params_path or conf.LINPARAMS_PATH
     bank = load_model_bank(params_path, d_nom=d_nom)
     H = build_lidar_system(bank)
-    K0 = synthesize_static_k0(bank, H, frequency_samples, k0_scale, scale_candidates)
+    K0 = synthesize_static_hinf_k0(
+        bank,
+        H,
+        frequency_samples,
+        k0_scale,
+        scale_candidates,
+        hinf_control_weight,
+        hinf_gain_regularization,
+        hinf_max_iterations,
+        hinf_max_optimized_variables,
+        hinf_max_stability_checks,
+    )
     CLS = closed_loop_right_division(H, K0)
     limits = ControllerLimits.from_dict(limits or conf.DEFAULT_LIMITS)
 
@@ -257,10 +460,15 @@ def build_controller_artifact(
         "schema_version": 1,
         "source": {
             "linear_parameters": conf.project_str(params_path),
-            "synthesis": "static_dc_pinv_scaled_frequency_search",
+            "synthesis": "static_output_feedback_hinf_frequency_optimization",
             "frequency_samples": int(frequency_samples),
             "k0_scale": None if k0_scale is None else float(k0_scale),
             "scale_candidates": None if scale_candidates is None else int(scale_candidates),
+            "hinf_control_weight": float(hinf_control_weight),
+            "hinf_gain_regularization": float(hinf_gain_regularization),
+            "hinf_max_iterations": int(hinf_max_iterations),
+            "hinf_max_optimized_variables": int(hinf_max_optimized_variables),
+            "hinf_max_stability_checks": int(hinf_max_stability_checks),
         },
         "model": bank.to_dict(),
         "plant": H.to_dict(),
